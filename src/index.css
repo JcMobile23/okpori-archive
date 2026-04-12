@@ -1,0 +1,111 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+@theme {
+  --color-charcoal: #0a0a0a;
+  --color-gold: #d4af37;
+  --color-gold-muted: #8e7d32;
+  --color-gold-glow: rgba(212, 175, 55, 0.4);
+  --color-parchment: #f5f5dc;
+  --color-text-dim: #a0a0a0;
+  
+  --font-serif: "Cormorant Garamond", serif;
+  --font-sans: "Inter", sans-serif;
+  
+  --animate-fade-in: fadeIn 2s ease-out forwards;
+  --animate-subtle-zoom: subtleZoom 20s infinite alternate;
+
+  @keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes subtleZoom {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.1); }
+  }
+}
+
+
+@layer base {
+  body {
+    background-color: var(--color-charcoal);
+    color: var(--color-parchment);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  
+  h1, h2, h3, h4, .font-serif {
+    font-family: var(--font-serif);
+  }
+}
+
+@layer components {
+  .gold-text {
+    color: var(--color-gold);
+    text-shadow: 0 0 10px var(--color-gold-glow);
+  }
+
+  .gold-border {
+    border: 1px solid rgba(212, 175, 55, 0.5);
+  }
+
+  .gold-gradient {
+    background: linear-gradient(135deg, #d4af37 0%, #f9e29c 50%, #b8860b 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Tree specific styles */
+  .node-circle {
+    fill: var(--color-charcoal);
+    stroke: var(--color-gold);
+    stroke-width: 2px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .node-circle:hover {
+    filter: drop-shadow(0 0 8px #d4af37);
+    stroke-width: 3px;
+  }
+
+  .link-path {
+    fill: none;
+    stroke: rgba(142, 125, 50, 0.5);
+    stroke-width: 1.5px;
+  }
+
+  .node-label {
+    fill: var(--color-parchment);
+    font-family: var(--font-serif);
+    font-size: 14px;
+    pointer-events: none;
+  }
+
+  .node-year {
+    fill: var(--color-text-dim);
+    font-family: var(--font-sans);
+    font-size: 10px;
+    pointer-events: none;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-charcoal);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-gold-muted);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gold);
+}

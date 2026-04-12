@@ -1,0 +1,445 @@
+{
+  "name": "OKPORI (THE PROGENITOR)",
+  "id": "okpori-root",
+  "gender": "male",
+  "bio": "The root ancestor and founding father of the lineage.",
+  "children": [
+    {
+      "name": "IGWE AKUBUEZE",
+      "id": "igwe-akubueze",
+      "gender": "male",
+      "children": [
+        { 
+          "name": "ISAAC", 
+          "id": "isaac",
+          "children": [
+            {
+              "name": "GEORGE",
+              "id": "george",
+              "children": [
+                { "name": "GOZIE", "id": "gozie" },
+                { "name": "UCHENNA", "id": "uchenna" },
+                { "name": "NNONYEM", "id": "nnonyem" },
+                { 
+                  "name": "CHUKWUDI (MIGHTY)", 
+                  "id": "mighty",
+                  "children": [
+                    {
+                      "name": "CHINAGOROM",
+                      "id": "chinagorom",
+                      "children": [
+                        { "name": "REJOICE", "id": "rejoice" },
+                        { "name": "PROSPER", "id": "prosper" },
+                        { "name": "EMMANUELLA", "id": "emmanuella" },
+                        { "name": "DOMINION", "id": "dominion" }
+                      ]
+                    },
+                    { "name": "HAPPINESS", "id": "happiness" },
+                    { "name": "CHINWENDU", "id": "chinwendu-m" },
+                    {
+                      "name": "AZUBUIKE",
+                      "id": "azubuike",
+                      "children": [
+                        { "name": "DIVINE", "id": "divine" }
+                      ]
+                    },
+                    { "name": "UJUNWA", "id": "ujunwa" },
+                    { "name": "CHIDI", "id": "chidi-m" },
+                    { "name": "IFEANYI", "id": "ifeanyi-m" },
+                    { "name": "EBERE", "id": "ebere-m" },
+                    { "name": "EKPERE", "id": "ekpere" }
+                  ]
+                },
+                { "name": "IFEANYI", "id": "ifeanyi-i" },
+                { "name": "NNENE", "id": "nnene" },
+                { "name": "EMMA", "id": "emma-i" }
+              ]
+            },
+            {
+              "name": "FRANK",
+              "id": "frank",
+              "children": [
+                { "name": "ONWUKWE", "id": "onwukwe" },
+                { 
+                  "name": "CHIDI", 
+                  "id": "chidi-f",
+                  "children": [
+                    { "name": "OGECHI", "id": "ogechi-f" },
+                    { "name": "CHIZZY", "id": "chizzy-f" },
+                    { "name": "ABIG", "id": "abig-f" },
+                    { "name": "SOPURU", "id": "sopuru-f" }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "CHUKWUANU",
+              "id": "chukwuanu",
+              "children": [
+                { 
+                  "name": "OZOEMENA", 
+                  "id": "ozoemena",
+                  "children": [
+                    { "name": "OLUCHI", "id": "oluchi-o" },
+                    { "name": "ONYIYECHI", "id": "onyechi-o" }
+                  ]
+                },
+                { "name": "CHIDIMMA", "id": "chidimma" },
+                { "name": "OKECHUKWU", "id": "okechukwu-i" },
+                { 
+                  "name": "MBAKWE", 
+                  "id": "mbakwe",
+                  "children": [
+                    { "name": "NYESOM", "id": "nyesom" },
+                    { "name": "CHIKAYIMA", "id": "chikayima" },
+                    { "name": "BURUCHI", "id": "buruchi" },
+                    { "name": "CHISIMCHIA", "id": "chisimchia" }
+                  ]
+                },
+                { "name": "CHIMA", "id": "chima" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "OJIAKOR(AJIE)",
+      "id": "ojiakor",
+      "gender": "male",
+      "children": [
+        { 
+          "name": "AJIE AJUPU", 
+          "id": "ajie-ajupu",
+          "children": [
+            {
+              "name": "SAMUEL",
+              "id": "samuel-a",
+              "children": [
+                { "name": "JOYCEE", "id": "joycee-a" },
+                { "name": "EAUGINE", "id": "eaugine-a" },
+                { "name": "CLARIBEL", "id": "claribel-a" },
+                { "name": "CHINENYE", "id": "chinenye-a" },
+                {
+                  "name": "IKECHUKWU",
+                  "id": "ikechukwu-a",
+                  "children": [
+                    { "name": "CHIALUKA", "id": "chialuka-a" },
+                    { "name": "EBERE", "id": "ebere-a" },
+                    { "name": "IKECHUKWU JR", "id": "ikechukwu-jr-a" }
+                  ]
+                }
+              ]
+            },
+            { "name": "OYIBO", "id": "oyibo-a" },
+            {
+              "name": "MARTIN",
+              "id": "martin-a",
+              "children": [
+                { "name": "OGEDI", "id": "ogedi-m" },
+                {
+                  "name": "KASIE",
+                  "id": "kasie-m",
+                  "children": [
+                    { "name": "CHUKWUMA", "id": "chukwuma-k" },
+                    { "name": "EKENE", "id": "ekene-k" },
+                    { "name": "NGOZI", "id": "ngozi-k" },
+                    { "name": "AMARACHI", "id": "amarachi-k" },
+                    { "name": "EBERE", "id": "ebere-k" }
+                  ]
+                },
+                { "name": "NDUBUEZE", "id": "ndubueze-m" },
+                { "name": "CHIJIOKE", "id": "chijioke-m" },
+                { "name": "ONUOHA", "id": "onuoha-m" },
+                { "name": "CHIKA", "id": "chika-m" },
+                { "name": "CHINEDU", "id": "chinedu-m" },
+                { "name": "CHINWENDU", "id": "chinwendu-m" }
+              ]
+            },
+            { "name": "NWADEI", "id": "nwadei-a" }
+          ]
+        },
+        { "name": "OHAFU", "id": "ohafu" },
+        { "name": "NNENAYA", "id": "nnenaya" }
+      ]
+    },
+    {
+      "name": "NDUKA{UDOM}",
+      "id": "nduka",
+      "gender": "male",
+      "children": [
+        {
+          "name": "JOSEPH",
+          "id": "joseph",
+          "gender": "male",
+          "children": [
+            { "name": "EUNICE", "id": "eunice-j" },
+            { 
+              "name": "FREDRICK", 
+              "id": "fredrick-j",
+              "children": [
+                { "name": "BLESSING", "id": "blessing-f" },
+                {
+                  "name": "NNAMDI",
+                  "id": "nnamdi-f",
+                  "children": [
+                    { "name": "EBERE", "id": "ebere-ef" },
+                    { 
+                      "name": "CHUKWUMA", 
+                      "id": "chukwuma-ef",
+                      "children": [
+                        { "name": "CHIMERE", "id": "chimere-cef" },
+                        { "name": "IFEANYI", "id": "ifeanyi-cef" },
+                        { "name": "ADAUGO", "id": "adaugo-cef" }
+                      ]
+                    },
+                    { "name": "NKEIRUKA", "id": "nkeiruka-ef" },
+                    { "name": "OKECHUKWU", "id": "okechukwu-ef" },
+                    { "name": "OBIAGERI", "id": "obiageri-ef" },
+                    { "name": "UGOCHUKWU", "id": "igo-ef" },
+                    { "name": "AYODELE", "id": "ayodele-ef" },
+                    { "name": "EBUBE", "id": "ebube-ef" },
+                    { "name": "CHIBUZO", "id": "chibuzo-ef" }
+                  ]
+                },
+                { "name": "GLORIA", "id": "gloria-f" },
+                {
+                  "name": "ONYEKACHI",
+                  "id": "onyekachi-f",
+                  "children": [
+                    { "name": "CHIBUIKE", "id": "chibuike-of" },
+                    { 
+                      "name": "IHEANYI", 
+                      "id": "iheanyi-of",
+                      "children": [{ "name": "EBUBE", "id": "ebube-iof" }]
+                    },
+                    { 
+                      "name": "EMEKA", 
+                      "id": "emeka-of",
+                      "children": [{ "name": "EBUKA", "id": "ebuka-eof" }]
+                    }
+                  ]
+                },
+                {
+                  "name": "EDWIN",
+                  "id": "edwin-f",
+                  "children": [
+                    { "name": "GODWIN", "id": "godwin-nf" }
+                  ]
+                },
+                {
+                  "name": "OWEN",
+                  "id": "owen-f",
+                  "children": [
+                    { "name": "IFEANYI", "id": "ifeanyi-kf" },
+                    { "name": "EZICHI", "id": "ezichi-kf" },
+                    { "name": "OKEZIE", "id": "okezie-kf" },
+                    { "name": "CHIKODI", "id": "chikodi-kf" },
+                    { "name": "UDOCHUKWU", "id": "udochukwu-kf" }
+                  ]
+                },
+                { "name": "EDITH", "id": "edith-f" },
+                { "name": "FLORENCE", "id": "florence-f" },
+                {
+                  "name": "KANEBI",
+                  "id": "kanebi-f"
+                },
+                { "name": "AZUKA", "id": "azuka-f" }
+              ]
+            },
+            { 
+              "name": "CHIEF CALEB", 
+              "id": "chief-caleb",
+              "children": [
+                { "name": "IDU", "id": "idu-c" },
+                { "name": "CHINYERE", "id": "chinyere-c" },
+                {
+                  "name": "VEN CALEB",
+                  "id": "ven-caleb-c",
+                  "children": [
+                    { "name": "DR CALEB", "id": "dr-caleb-vc" },
+                    { "name": "ESTHER", "id": "esther-vc" },
+                    { "name": "CHIZZY", "id": "chizzy-vc" },
+                    { 
+                      "name": "JOSHUA", 
+                      "id": "joshua-vc",
+                      "children": [{ "name": "JOSHUA JNR C", "id": "joshua-jnr-c" }]
+                    },
+                    { "name": "EMMA", "id": "emma-vc" }
+                  ]
+                },
+                {
+                  "name": "NKEM",
+                  "id": "nkem-c",
+                  "children": [
+                    { "name": "CHIAMAKA", "id": "chiamaka-nc" },
+                    { "name": "CHUKWUDI", "id": "chukwudi-nc" },
+                    { "name": "OLISA", "id": "olisa-nc" },
+                    { "name": "CHIBUDOM", "id": "chibudom-nc" }
+                  ]
+                },
+                { "name": "CLIFFORD", "id": "clifford-c" },
+                { "name": "OBY", "id": "oby-c" }
+              ]
+            },
+            { 
+              "name": "JERRY", 
+              "id": "jerry",
+              "children": [
+                { "name": "NDUKA", "id": "nduka-j" },
+                { "name": "CHINEDU", "id": "chinedu-j" },
+                { "name": "CHINELO", "id": "chinelo-j" },
+                { "name": "DR CHIEKE", "id": "dr-chieke-j" },
+                { "name": "NNEKA", "id": "nneka-j" },
+                { "name": "OMEREBERE", "id": "omerebere-j" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "IGWURU",
+      "id": "igwuru",
+      "gender": "male",
+      "children": [
+        {
+          "name": "ISICHERE",
+          "id": "isichere",
+          "children": [
+            { 
+              "name": "ONYIMADU", 
+              "id": "onyimadu-i",
+              "children": [
+                {
+                  "name": "UZOMA",
+                  "id": "uzoma-o",
+                  "children": [
+                    {
+                      "name": "ODERE",
+                      "id": "odere-u",
+                      "children": [
+                        { "name": "GOODLUCK", "id": "goodluck-o" },
+                        { "name": "FAVOUR", "id": "favour-o" },
+                        { "name": "PRINCEWILL", "id": "princewill-o" }
+                      ]
+                    },
+                    { "name": "ADA", "id": "ada-u" },
+                    {
+                      "name": "MUNACHI",
+                      "id": "munachi-u",
+                      "children": [
+                        { "name": "TESTIMONY", "id": "testimony-m" }
+                      ]
+                    },
+                    { "name": "CHIBUNWANNE", "id": "chibunwanne-u" }
+                  ]
+                }
+              ]
+            },
+            { "name": "CHIGOZIE", "id": "chigozie-i" },
+            { 
+              "name": "ONYEMAECHI", 
+              "id": "onyemaechi-i",
+              "children": [
+                {
+                  "name": "TOCHUKWU",
+                  "id": "tochukwu-o",
+                  "children": [
+                    { "name": "CHISIMDI", "id": "chisimdi-t" },
+                    { "name": "UCHECHUKWU", "id": "uchechukwu-t" },
+                    { "name": "SOMTOCHUKWU", "id": "somtochukwu-t" }
+                  ]
+                },
+                { "name": "CHIMDIUTO", "id": "chimdiuto-o" },
+                { "name": "CHINECHE", "id": "chineche-o" },
+                { "name": "NKWACHI", "id": "nkwachi-o" },
+                { "name": "EBERE", "id": "ebere-o" },
+                { "name": "CHETACHI", "id": "chetachi-o" },
+                { "name": "UDOCHUKWU", "id": "udochukwu-o" }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "EMMANUEL",
+          "id": "emmanuel",
+          "children": [
+            {
+              "name": "GODFFREY",
+              "id": "godffrey-e",
+              "children": [
+                { "name": "NNODI", "id": "nnodi-ge" },
+                { "name": "KUFODU", "id": "kufodu-ge" }
+              ]
+            },
+            { "name": "GRACE", "id": "grace-e" },
+            {
+              "name": "BENJI",
+              "id": "benji-e",
+              "children": [
+                { "name": "NGOZI", "id": "ngozi-be" },
+                { 
+                  "name": "IFEANYI", 
+                  "id": "ifeanyi-be",
+                  "children": [
+                    {
+                      "name": "BENEDICT",
+                      "id": "benedict-ibe",
+                      "children": [
+                        { "name": "ISABELLA", "id": "isabella-bibe" },
+                        { "name": "JUMAIMA", "id": "jumaima-bibe" }
+                      ]
+                    },
+                    { 
+                      "name": "RICHARD", 
+                      "id": "richard-ibe",
+                      "children": [{ "name": "DELIGHT", "id": "delight-ribe" }]
+                    },
+                    { "name": "KELVIN", "id": "kelvin-ibe" }
+                  ]
+                },
+                { 
+                  "name": "UCHE", 
+                  "id": "uche-be",
+                  "children": [
+                    { "name": "MIRACLE", "id": "miracle-ube" },
+                    { "name": "BLESSING", "id": "blessing-ube" },
+                    { "name": "DAVID", "id": "david-ube" },
+                    { "name": "DIVINE", "id": "divine-ube" },
+                    { "name": "DANIEL", "id": "daniel-ube" }
+                  ]
+                },
+                { 
+                  "name": "MIKE", 
+                  "id": "mike-be",
+                  "children": [
+                    { "name": "CHINAZAR", "id": "chinazar-mbe" },
+                    { "name": "EBUKA", "id": "ebuka-mbe" },
+                    { "name": "ONYIYECHI", "id": "onyiyechi-mbe" }
+                  ]
+                },
+                { "name": "JANE", "id": "jane-be" },
+                { "name": "CHICHI", "id": "chichi-be" },
+                { "name": "EKWUTOS", "id": "ekwutos-be" }
+              ]
+            },
+            { "name": "ONYABOR", "id": "onyabor-e" }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "NNURU",
+      "id": "nnuru",
+      "gender": "male",
+      "children": []
+    },
+    {
+      "name": "NDIKANWA",
+      "id": "ndikanwa",
+      "gender": "male",
+      "children": []
+    }
+  ]
+}
