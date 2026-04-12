@@ -21,6 +21,30 @@ const App = () => {
     const saved = localStorage.getItem('okpori_gallery');
     return saved ? JSON.parse(saved) : [];
   });
+  const [isAdminMode, setIsAdminMode] = useState(false);
+  const [clickCount, setClickCount] = useState(0);
+  const [showNavGuide, setShowNavGuide] = useState(false);
+
+  // Set showNavGuide when entering the tree
+  React.useEffect(() => {
+    if (showTree) {
+      setShowNavGuide(true);
+      const timer = setTimeout(() => setShowNavGuide(false), 6000);
+      return () => clearTimeout(timer);
+    }
+  }, [showTree]);
+
+  const handleAdminToggle = () => {
+    setClickCount(prev => {
+      if (prev + 1 >= 3) {
+        setIsAdminMode(true);
+        return 0;
+      }
+      return prev + 1;
+    });
+    // Reset click count after 2 seconds of inactivity
+    setTimeout(() => setClickCount(0), 2000);
+  };
 
   const savePerson = (updatedPerson) => {
     const updateRecursive = (node) => {
@@ -51,7 +75,6 @@ const App = () => {
   };
 
   const resetArchive = () => {
-    console.log("Resetting archive...");
     const confirmed = window.confirm("This will reset all lineage edits and reload from the source file. Photographic archive will remain intact. Proceed?");
     if (confirmed) {
       localStorage.removeItem('okpori_lineage');
@@ -183,36 +206,62 @@ const App = () => {
               onDelete={removeGalleryItem} 
             />
 
+            {/* Floating Navigation Guide */}
+            <AnimatePresence>
+              {showNavGuide && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed bottom-32 left-1/2 -translate-x-1/2 z-50 bg-black/60 backdrop-blur-md border border-gold/20 px-8 py-4 rounded-full shadow-2xl pointer-events-none"
+                >
+                  <p className="text-gold/80 font-serif italic text-sm tracking-wide">
+                    "Select an ancestor to view their story • Explore the landscape with your touch"
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Footer */}
             <footer className="py-24 border-t border-gold/10 text-center bg-black relative">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] flex pointer-events-auto">
-                <button
-                  onClick={downloadArchive}
-                  className="bg-charcoal border border-gold/30 text-gold px-8 py-3 rounded-l-full text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-gold hover:text-black transition-all shadow-xl flex items-center gap-3 group border-r-0"
-                >
-                  <span className="w-2 h-2 bg-gold rounded-full group-hover:bg-black group-hover:animate-ping" />
-                  Backup
-                </button>
-                <div className="relative group">
-                   <button
-                    className="bg-charcoal border border-gold/30 text-gold px-8 py-3 text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-gold/10 transition-all shadow-xl flex items-center gap-3 border-x-0"
+              <AnimatePresence>
+                {isAdminMode && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] flex pointer-events-auto shadow-[0_0_50px_rgba(212,175,55,0.2)]"
                   >
-                    Import Archive
-                  </button>
-                  <input 
-                    type="file" 
-                    accept=".json"
-                    onChange={importArchive}
-                    className="absolute inset-0 opacity-0 cursor-pointer"
-                  />
-                </div>
-                <button
-                  onClick={resetArchive}
-                  className="bg-charcoal border border-gold/30 text-gold px-8 py-3 rounded-r-full text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-gold/20 transition-all shadow-[0_0_20px_rgba(212,175,55,0.2)] flex items-center gap-3 group border-l-gold/10"
-                >
-                  Sync Archive
-                </button>
-              </div>
+                    <button
+                      onClick={downloadArchive}
+                      className="bg-charcoal border border-gold/40 text-gold px-8 py-3 rounded-l-full text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-gold hover:text-black transition-all shadow-xl flex items-center gap-3 group border-r-0"
+                    >
+                      <span className="w-2 h-2 bg-gold rounded-full group-hover:bg-black group-hover:animate-ping" />
+                      Backup
+                    </button>
+                    <div className="relative group">
+                      <button
+                        className="bg-charcoal border border-gold/40 text-gold px-8 py-3 text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-gold/10 transition-all shadow-xl flex items-center gap-3 border-x-0"
+                      >
+                        Import Archive
+                      </button>
+                      <input 
+                        type="file" 
+                        accept=".json"
+                        onChange={importArchive}
+                        className="absolute inset-0 opacity-0 cursor-pointer"
+                      />
+                    </div>
+                    <button
+                      onClick={resetArchive}
+                      className="bg-charcoal border border-gold/40 text-gold px-8 py-3 rounded-r-full text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-gold/20 transition-all shadow-xl flex items-center gap-3 group border-l-gold/10"
+                    >
+                      Sync Archive
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              
               <motion.div
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
@@ -224,7 +273,12 @@ const App = () => {
                   alt="Okpori Signature Seal" 
                   className="w-20 h-20 mx-auto opacity-40 hover:opacity-80 transition-all duration-700 hover:scale-110 mb-4"
                 />
-                <p className="text-gold font-serif text-4xl italic tracking-widest">Okpori</p>
+                <button 
+                  onClick={handleAdminToggle}
+                  className="text-gold font-serif text-4xl italic tracking-widest hover:brightness-125 transition-all select-none focus:outline-none"
+                >
+                  Okpori
+                </button>
                 <div className="h-px w-8 bg-gold/20 mx-auto" />
                 <p className="text-[10px] text-parchment/20 uppercase tracking-[0.4em] font-sans">
                   The Ancestral Portal &copy; 2026. Forever Preserving Our Heritage.
