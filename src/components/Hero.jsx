@@ -24,7 +24,7 @@ const Hero = ({ onEnter }) => {
            className="mb-8 flex justify-center"
         >
           <img 
-            src="/src/assets/crest.png" 
+            src="/crest.png" 
             alt="Okpori Family Crest" 
             className="w-32 h-32 md:w-48 md:h-48 object-contain drop-shadow-[0_0_30px_rgba(212,175,55,0.3)] filter brightness-110"
           />

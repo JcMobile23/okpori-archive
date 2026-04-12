@@ -59,6 +59,28 @@ const App = () => {
     }
   };
 
+  const importArchive = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const archive = JSON.parse(event.target.result);
+          if (archive.lineage && archive.gallery) {
+            localStorage.setItem('okpori_lineage', JSON.stringify(archive.lineage));
+            localStorage.setItem('okpori_gallery', JSON.stringify(archive.gallery));
+            window.location.reload();
+          } else {
+            alert("This file doesn't seem to be a valid Okpori Archive.");
+          }
+        } catch (err) {
+          alert("Failed to read the archive file.");
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
   const downloadArchive = () => {
     const archiveData = {
       lineage: data,
@@ -121,7 +143,7 @@ const App = () => {
                 className="mb-8"
               >
                 <img 
-                  src="/src/assets/crest.png" 
+                  src="/crest.png" 
                   alt="Legacy Mark" 
                   className="w-16 h-16 object-contain opacity-60 hover:opacity-100 transition-opacity cursor-pointer drop-shadow-[0_0_15px_rgba(212,175,55,0.2)]"
                 />
@@ -171,6 +193,19 @@ const App = () => {
                   <span className="w-2 h-2 bg-gold rounded-full group-hover:bg-black group-hover:animate-ping" />
                   Backup
                 </button>
+                <div className="relative group">
+                   <button
+                    className="bg-charcoal border border-gold/30 text-gold px-8 py-3 text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-gold/10 transition-all shadow-xl flex items-center gap-3 border-x-0"
+                  >
+                    Import Archive
+                  </button>
+                  <input 
+                    type="file" 
+                    accept=".json"
+                    onChange={importArchive}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
+                </div>
                 <button
                   onClick={resetArchive}
                   className="bg-charcoal border border-gold/30 text-gold px-8 py-3 rounded-r-full text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-gold/20 transition-all shadow-[0_0_20px_rgba(212,175,55,0.2)] flex items-center gap-3 group border-l-gold/10"
@@ -185,7 +220,7 @@ const App = () => {
                 className="space-y-6 pt-12"
               >
                 <img 
-                  src="/src/assets/crest.png" 
+                  src="/crest.png" 
                   alt="Okpori Signature Seal" 
                   className="w-20 h-20 mx-auto opacity-40 hover:opacity-80 transition-all duration-700 hover:scale-110 mb-4"
                 />
