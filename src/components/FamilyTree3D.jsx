@@ -42,7 +42,6 @@ const Node = ({ node, activeNodeId, onClick }) => {
           color={textColor}
           anchorX="center"
           anchorY="middle"
-          font="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfMZhrib2Bg-4.ttf"
           fontWeight="bold"
           letterSpacing={0.05}
           maxWidth={140}
@@ -59,7 +58,6 @@ const Node = ({ node, activeNodeId, onClick }) => {
             color="#888888"
             anchorX="center"
             anchorY="middle"
-            font="https://fonts.gstatic.com/s/cormorantgaramond/v16/co3bmX5slCNuHLi8bLeY9MK7whWMhyjYpntPqQ.woff"
             letterSpacing={0.1}
           >
             {node.data.birthYear} - {node.data.deathYear || ''}
