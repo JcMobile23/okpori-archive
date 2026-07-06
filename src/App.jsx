@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import Hero from './components/Hero';
 import FamilyTree from './components/FamilyTree';
+import FamilyTree3D from './components/FamilyTree3D';
 import ProfilePortal from './components/ProfilePortal';
 import Search from './components/Search';
 import Pillars from './components/Pillars';
 import VisualArchive from './components/VisualArchive';
+import VisualArchive3D from './components/VisualArchive3D';
 import lineageData from './data/lineage.json';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -24,6 +26,7 @@ const App = () => {
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [clickCount, setClickCount] = useState(0);
   const [showNavGuide, setShowNavGuide] = useState(false);
+  const [isLiteMode, setIsLiteMode] = useState(false);
 
   // Set showNavGuide when entering the tree
   React.useEffect(() => {
@@ -190,21 +193,50 @@ const App = () => {
             </div>
 
             {/* Interactive Tree Section */}
-            <FamilyTree
-              data={data}
-              onNodeClick={handleNodeClick}
-              activeNodeId={activeNodeId}
-            />
+            {!isLiteMode ? (
+              <FamilyTree3D
+                data={data}
+                onNodeClick={handleNodeClick}
+                activeNodeId={activeNodeId}
+                onToggleLiteMode={() => setIsLiteMode(true)}
+              />
+            ) : (
+              <div className="relative">
+                <div className="absolute top-6 right-6 z-10">
+                  <button 
+                    onClick={() => setIsLiteMode(false)}
+                    className="border border-gold/30 text-gold px-4 py-2 text-[10px] uppercase tracking-widest hover:bg-gold/10 transition-colors rounded-full"
+                  >
+                    Switch to 3D Mode
+                  </button>
+                </div>
+                <FamilyTree
+                  data={data}
+                  onNodeClick={handleNodeClick}
+                  activeNodeId={activeNodeId}
+                />
+              </div>
+            )}
 
             {/* Cinematic Pillars Section */}
             <Pillars />
 
             {/* Dedicated Photographic Archive */}
-            <VisualArchive 
-              items={galleryItems} 
-              onAdd={saveGalleryItem} 
-              onDelete={removeGalleryItem} 
-            />
+            {!isLiteMode ? (
+              <VisualArchive3D 
+                items={galleryItems} 
+                onAdd={saveGalleryItem} 
+                onDelete={removeGalleryItem} 
+                isLiteMode={isLiteMode}
+                onToggleLiteMode={() => setIsLiteMode(true)}
+              />
+            ) : (
+              <VisualArchive 
+                items={galleryItems} 
+                onAdd={saveGalleryItem} 
+                onDelete={removeGalleryItem} 
+              />
+            )}
 
             {/* Floating Navigation Guide */}
             <AnimatePresence>

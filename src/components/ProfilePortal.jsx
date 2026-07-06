@@ -132,7 +132,7 @@ const ProfilePortal = ({ person, isOpen, onClose, onSave }) => {
                      </div>
                    ) : (
                      <>
-                       <h2 className="text-gold font-serif text-5xl lg:text-6xl tracking-tight leading-tight">{person.name}</h2>
+                       <h2 className="text-gold font-serif text-4xl lg:text-5xl tracking-tight leading-tight break-words text-balance px-4">{person.name}</h2>
                        <div className="h-px w-20 bg-gradient-to-r from-transparent via-gold/40 to-transparent mx-auto mt-6" />
                        <p className="text-gold/40 font-sans text-[10px] uppercase tracking-[0.4em] mt-4">
                          {person.gender === 'male' ? 'Patriarch' : 'Matriarch'}
