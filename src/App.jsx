@@ -1,16 +1,19 @@
-import React, { useState, useRef } from 'react';
-import Hero from './components/Hero';
+import React, { useState, useRef, lazy } from 'react';
 import FamilyTree from './components/FamilyTree';
-import FamilyTree3D from './components/FamilyTree3D';
 import ProfilePortal from './components/ProfilePortal';
 import Search from './components/Search';
 import Pillars from './components/Pillars';
 import VisualArchive from './components/VisualArchive';
-import VisualArchive3D from './components/VisualArchive3D';
 import lineageData from './data/lineage.json';
 import { motion, AnimatePresence } from 'framer-motion';
 import { STORAGE_KEYS } from './constants';
 import { updateRecursive, findPerson, validateLineageShape } from './utils/tree';
+import ThreeSafe from './components/ThreeSafe';
+import { BoundaryFallback } from './components/ErrorBoundary';
+
+const LazyHero = lazy(() => import('./components/Hero'));
+const LazyFamilyTree3D = lazy(() => import('./components/FamilyTree3D'));
+const LazyVisualArchive3D = lazy(() => import('./components/VisualArchive3D'));
 
 const safeReadStorage = (key, fallback) => {
   try {
@@ -40,6 +43,57 @@ const safeWriteStorage = (key, value) => {
   }
 };
 
+const HeroStatic2DFallback = ({ onEnter }) => (
+  <div className="relative h-screen w-full flex flex-col items-center justify-center bg-charcoal overflow-hidden">
+    <div
+      className="absolute inset-0 bg-cover bg-center brightness-50 contrast-125 grayscale-[40%] opacity-20 pointer-events-none"
+      style={{
+        backgroundImage:
+          "url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=2000')",
+      }}
+    />
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(212,175,55,0.18)_0%,_transparent_70%)] opacity-40 animate-pulse pointer-events-none" />
+    <div className="absolute inset-0 bg-black/55 z-10 pointer-events-none" />
+    <div className="z-20 text-center px-4 max-w-4xl animate-fade-in">
+      <div className="mb-8 flex justify-center animate-fade-in">
+        <img
+          src="/crest.png"
+          alt="Okpori Family Crest"
+          className="w-32 h-32 md:w-48 md:h-48 object-contain drop-shadow-[0_0_30px_rgba(212,175,55,0.3)] filter brightness-110"
+        />
+      </div>
+      <p className="text-gold-muted uppercase text-xs mb-6 font-sans font-light tracking-[0.5em] opacity-100 animate-fade-in">
+        Preserving the Ancestral Flame
+      </p>
+      <h1 className="text-8xl md:text-[12rem] font-serif gold-gradient mb-8 leading-none select-none tracking-tight">
+        Okpori
+      </h1>
+      <div className="space-y-8">
+        <p className="max-w-2xl mx-auto text-parchment/70 font-serif italic text-xl md:text-2xl leading-relaxed animate-fade-in">
+          "Roots that reach deep into the earth, branches that touch the heavens. The story of us,
+          beginning with him."
+        </p>
+        <div className="flex flex-col items-center gap-6 pt-8">
+          <button
+            onClick={onEnter}
+            className="group relative px-12 py-5 overflow-hidden hover:scale-[1.02] active:scale-[0.98] transition-transform"
+          >
+            <div className="absolute inset-0 border border-gold/40 transition-colors group-hover:border-gold" />
+            <div className="absolute inset-0 bg-gold/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <span className="relative z-10 text-gold uppercase tracking-[0.3em] text-sm font-sans font-medium transition-all group-hover:tracking-[0.4em]">
+              Explore the Great Tree
+            </span>
+          </button>
+          <div className="animate-bounce mt-4">
+            <div className="w-px h-16 bg-gradient-to-b from-gold/60 to-transparent" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,_transparent_0%,_black_90%)] z-[15]" />
+  </div>
+);
+
 const App = () => {
   const [showTree, setShowTree] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState(null);
@@ -50,8 +104,15 @@ const App = () => {
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [showNavGuide, setShowNavGuide] = useState(false);
   const [isLiteMode, setIsLiteMode] = useState(false);
+  const [boundaryToast, setBoundaryToast] = useState(null);
   const adminClickRef = useRef(0);
   const adminTimerRef = useRef(null);
+
+  React.useEffect(() => {
+    if (!boundaryToast) return;
+    const t = setTimeout(() => setBoundaryToast(null), 4500);
+    return () => clearTimeout(t);
+  }, [boundaryToast]);
 
   React.useEffect(() => {
     if (showTree) {
@@ -165,11 +226,66 @@ const App = () => {
     }
   };
 
+  const handleDegradeTree = () => {
+    setIsLiteMode(true);
+    setBoundaryToast({ kind: 'tree', label: '3D Lineage unavailable — using interactive 2D map' });
+  };
+
+  const handleDegradeArchive = () => {
+    setIsLiteMode(true);
+    setBoundaryToast({ kind: 'archive', label: '3D Archive unavailable — using 2D gallery' });
+  };
+
+  const handleEnterApp = () => setShowTree(true);
+
   return (
     <div className="min-h-screen bg-charcoal selection:bg-gold/30 selection:text-gold">
       <AnimatePresence mode="wait">
+        {boundaryToast && (
+          <motion.div
+            key="boundary-toast"
+            initial={{ opacity: 0, y: -14 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -14 }}
+            transition={{ duration: 0.25 }}
+            className="fixed top-6 right-6 z-[200] max-w-sm bg-charcoal/95 backdrop-blur-md border border-gold/30 px-5 py-3.5 shadow-[0_0_50px_rgba(212,175,55,0.15)] flex items-start gap-3"
+          >
+            <div className="w-2 h-2 rounded-full bg-gold mt-1.5 flex-shrink-0 shadow-[0_0_10px_rgba(212,175,55,0.6)] animate-pulse" />
+            <p className="text-[11px] text-parchment/70 font-serif italic tracking-wide leading-snug pr-2">
+              {boundaryToast.label}
+            </p>
+            <button
+              onClick={() => setBoundaryToast(null)}
+              className="text-parchment/30 hover:text-gold transition-colors text-xs leading-none flex-shrink-0 mt-0.5"
+              aria-label="Dismiss"
+            >
+              ✕
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence mode="wait">
         {!showTree ? (
-          <Hero key="hero" onEnter={() => setShowTree(true)} />
+          <motion.div key="hero" exit={{ opacity: 0 }}>
+            <ThreeSafe
+              boundaryTitle="The Ancestral Flame couldn't render"
+              boundaryDetail="WebGL hardware acceleration is unavailable on this device."
+              suspenseLabel="Kindling the Ancestral Flame"
+              onDegrade={handleEnterApp}
+              degradeLabel="Enter Without 3D"
+              fallback={() => (
+                <BoundaryFallback
+                  title="The Ancestral Flame couldn't render"
+                  detail="WebGL hardware acceleration is unavailable on this device."
+                  degradeLabel="Explore the Archive"
+                  onDegrade={handleEnterApp}
+                />
+              )}
+            >
+              <LazyHero onEnter={handleEnterApp} />
+            </ThreeSafe>
+          </motion.div>
         ) : (
           <motion.div
             key="content"
@@ -214,12 +330,22 @@ const App = () => {
             </div>
 
             {!isLiteMode ? (
-              <FamilyTree3D
-                data={data}
-                onNodeClick={handleNodeClick}
-                activeNodeId={activeNodeId}
-                onToggleLiteMode={() => setIsLiteMode(true)}
-              />
+              <React.Fragment key="tree-3d">
+                <ThreeSafe
+                  boundaryTitle="3D Lineage unavailable"
+                  boundaryDetail="Falling back to the interactive 2D map."
+                  suspenseLabel="Weaving the 3D Ancestral Canopy"
+                  onDegrade={handleDegradeTree}
+                  degradeLabel="Use 2D Lineage"
+                >
+                  <LazyFamilyTree3D
+                    data={data}
+                    onNodeClick={handleNodeClick}
+                    activeNodeId={activeNodeId}
+                    onToggleLiteMode={() => setIsLiteMode(true)}
+                  />
+                </ThreeSafe>
+              </React.Fragment>
             ) : (
               <div className="relative">
                 <div className="absolute top-6 right-6 z-10">
@@ -241,12 +367,22 @@ const App = () => {
             <Pillars />
 
             {!isLiteMode ? (
-              <VisualArchive3D
-                items={galleryItems}
-                onAdd={saveGalleryItem}
-                onDelete={removeGalleryItem}
-                onToggleLiteMode={() => setIsLiteMode(true)}
-              />
+              <React.Fragment key="archive-3d">
+                <ThreeSafe
+                  boundaryTitle="3D Visual Archive unavailable"
+                  boundaryDetail="Falling back to the 2D gallery."
+                  suspenseLabel="Unfurling the 3D Ancestral Scrolls"
+                  onDegrade={handleDegradeArchive}
+                  degradeLabel="Use 2D Archive"
+                >
+                  <LazyVisualArchive3D
+                    items={galleryItems}
+                    onAdd={saveGalleryItem}
+                    onDelete={removeGalleryItem}
+                    onToggleLiteMode={() => setIsLiteMode(true)}
+                  />
+                </ThreeSafe>
+              </React.Fragment>
             ) : (
               <VisualArchive
                 items={galleryItems}
