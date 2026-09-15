@@ -133,7 +133,7 @@ const TreeGraph = ({ data, activeNodeId, onNodeClick }) => {
     const treeLayout = d3.tree().nodeSize([220, 180]);
     treeLayout(root);
 
-    root.forEach((d) => {
+    root.each((d) => {
       const tempX = d.x;
       const tempDepth = d.y;
 
