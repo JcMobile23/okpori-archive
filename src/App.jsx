@@ -380,6 +380,7 @@ const App = () => {
                     onAdd={saveGalleryItem}
                     onDelete={removeGalleryItem}
                     onToggleLiteMode={() => setIsLiteMode(true)}
+                    isAdminMode={isAdminMode}
                   />
                 </ThreeSafe>
               </React.Fragment>
@@ -388,6 +389,7 @@ const App = () => {
                 items={galleryItems}
                 onAdd={saveGalleryItem}
                 onDelete={removeGalleryItem}
+                isAdminMode={isAdminMode}
               />
             )}
 

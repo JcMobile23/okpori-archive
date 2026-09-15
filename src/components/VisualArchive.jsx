@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Plus, X, Camera, Users, Calendar, MapPin, Trash2, Maximize2 } from 'lucide-react';
 
-const VisualArchive = ({ items, onAdd, onDelete }) => {
+const VisualArchive = ({ items, onAdd, onDelete, isAdminMode }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [formData, setFormData] = useState({
@@ -53,13 +53,15 @@ const VisualArchive = ({ items, onAdd, onDelete }) => {
             </p>
           </div>
 
-          <button
-            onClick={() => setIsAdding(true)}
-            className="flex items-center gap-3 px-8 py-4 bg-gold text-black rounded-full font-bold uppercase text-[10px] tracking-widest hover:scale-105 transition-all shadow-[0_10px_30px_rgba(212,175,55,0.2)]"
-          >
-            <Plus size={16} />
-            Add to Archive
-          </button>
+          {isAdminMode && (
+            <button
+              onClick={() => setIsAdding(true)}
+              className="flex items-center gap-3 px-8 py-4 bg-gold text-black rounded-full font-bold uppercase text-[10px] tracking-widest hover:scale-105 transition-all shadow-[0_10px_30px_rgba(212,175,55,0.2)]"
+            >
+              <Plus size={16} />
+              Add to Archive
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -105,13 +107,15 @@ const VisualArchive = ({ items, onAdd, onDelete }) => {
                       >
                         <Maximize2 size={16} />
                       </button>
-                      <button
-                        onClick={() => onDelete(item.id)}
-                        className="p-2 bg-red-500/10 hover:bg-red-500/30 rounded-full text-red-400 transition-colors"
-                        aria-label="Delete photo"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      {isAdminMode && (
+                        <button
+                          onClick={() => onDelete(item.id)}
+                          className="p-2 bg-red-500/10 hover:bg-red-500/30 rounded-full text-red-400 transition-colors"
+                          aria-label="Delete photo"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -284,15 +288,17 @@ const VisualArchive = ({ items, onAdd, onDelete }) => {
                       </span>
                     )}
                   </div>
-                  <button
-                    onClick={() => {
-                      onDelete(selectedImage.id);
-                      setSelectedImage(null);
-                    }}
-                    className="flex items-center gap-2 mx-auto text-red-400 hover:text-red-300 transition-colors text-[10px] uppercase tracking-widest"
-                  >
-                    <Trash2 size={14} /> Remove from Archive
-                  </button>
+                  {isAdminMode && (
+                    <button
+                      onClick={() => {
+                        onDelete(selectedImage.id);
+                        setSelectedImage(null);
+                      }}
+                      className="flex items-center gap-2 mx-auto text-red-400 hover:text-red-300 transition-colors text-[10px] uppercase tracking-widest"
+                    >
+                      <Trash2 size={14} /> Remove from Archive
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
