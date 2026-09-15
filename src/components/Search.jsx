@@ -1,36 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Search as SearchIcon, X, User } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
+import { flattenTree } from '../utils/tree';
 
 const Search = ({ data, onResultClick }) => {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
-  const [isVisible, setIsVisible] = useState(false);
+  const wrapperRef = useRef(null);
 
-  // Flatten the tree for searching
-  const flattenTree = (node, acc = []) => {
-    acc.push({ name: node.name, id: node.id, ...node });
-    if (node.children) {
-      node.children.forEach(child => flattenTree(child, acc));
-    }
-    return acc;
-  };
+  const allMembers = useMemo(() => flattenTree(data), [data]);
 
-  const allMembers = React.useMemo(() => flattenTree(data), [data]);
-
-  useEffect(() => {
-    if (query.length > 1) {
-      const filtered = allMembers.filter(m => 
-        m.name.toLowerCase().includes(query.toLowerCase())
-      ).slice(0, 8);
-      setResults(filtered);
-    } else {
-      setResults([]);
-    }
+  const results = useMemo(() => {
+    if (query.length <= 1 || !allMembers.length) return [];
+    const q = query.toLowerCase();
+    return allMembers
+      .filter((m) => m.name.toLowerCase().includes(q))
+      .slice(0, 8);
   }, [query, allMembers]);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setQuery((p) => (p ? '' : p));
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const showDropdown = results.length > 0 && query.length > 1;
+
   return (
-    <div className="fixed top-8 left-1/2 -translate-x-1/2 z-40 w-full max-w-md px-4">
+    <div ref={wrapperRef} className="fixed top-8 left-1/2 -translate-x-1/2 z-40 w-full max-w-md px-4">
       <div className="relative">
         <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
           <SearchIcon size={18} className="text-gold/50" />
@@ -40,25 +40,24 @@ const Search = ({ data, onResultClick }) => {
           placeholder="Search for an ancestor..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => setIsVisible(true)}
           className="w-full bg-charcoal/80 backdrop-blur-xl border border-gold/20 rounded-full py-3 pl-12 pr-12 text-parchment placeholder:text-parchment/30 focus:outline-none focus:border-gold/50 transition-all shadow-2xl"
         />
         {query && (
-          <button 
+          <button
             onClick={() => setQuery('')}
             className="absolute inset-y-0 right-4 flex items-center text-gold/50 hover:text-gold"
+            aria-label="Clear search"
           >
             <X size={18} />
           </button>
         )}
 
         <AnimatePresence>
-          {isVisible && results.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              className="absolute top-full mt-2 w-full bg-[#111] border border-gold/20 rounded-2xl overflow-hidden shadow-2xl"
+          {showDropdown && (
+            <div
+              key="dropdown"
+              className="absolute top-full mt-2 w-full bg-[#111] border border-gold/20 rounded-2xl overflow-hidden shadow-2xl animate-fade-in"
+              style={{ animationDuration: '200ms' }}
             >
               {results.map((result) => (
                 <button
@@ -66,7 +65,6 @@ const Search = ({ data, onResultClick }) => {
                   onClick={() => {
                     onResultClick(result);
                     setQuery('');
-                    setIsVisible(false);
                   }}
                   className="w-full flex items-center gap-4 px-6 py-4 hover:bg-gold/10 text-left transition-colors border-b border-gold/5 last:border-0"
                 >
@@ -75,11 +73,13 @@ const Search = ({ data, onResultClick }) => {
                   </div>
                   <div>
                     <div className="text-gold font-serif text-sm">{result.name}</div>
-                    <div className="text-[10px] text-parchment/40 uppercase tracking-widest">{result.birthYear || 'Archived'}</div>
+                    <div className="text-[10px] text-parchment/40 uppercase tracking-widest">
+                      {result.birthYear || 'Archived'}
+                    </div>
                   </div>
                 </button>
               ))}
-            </motion.div>
+            </div>
           )}
         </AnimatePresence>
       </div>

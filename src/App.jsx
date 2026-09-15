@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Hero from './components/Hero';
 import FamilyTree from './components/FamilyTree';
 import FamilyTree3D from './components/FamilyTree3D';
@@ -9,26 +9,50 @@ import VisualArchive from './components/VisualArchive';
 import VisualArchive3D from './components/VisualArchive3D';
 import lineageData from './data/lineage.json';
 import { motion, AnimatePresence } from 'framer-motion';
+import { STORAGE_KEYS } from './constants';
+import { updateRecursive, findPerson, validateLineageShape } from './utils/tree';
+
+const safeReadStorage = (key, fallback) => {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    return JSON.parse(raw);
+  } catch (err) {
+    console.warn(`[Okpori] Failed to parse localStorage key "${key}", using fallback.`, err);
+    return fallback;
+  }
+};
+
+const safeWriteStorage = (key, value) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch (err) {
+    if (err && err.name === 'QuotaExceededError') {
+      alert(
+        'Storage full (5MB browser limit). Photos are stored on this device — please remove older large photos or back them up externally.'
+      );
+    } else {
+      alert('Failed to save changes to this browser.');
+      console.error(err);
+    }
+    return false;
+  }
+};
 
 const App = () => {
   const [showTree, setShowTree] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState(null);
   const [isPortalOpen, setIsPortalOpen] = useState(false);
   const [activeNodeId, setActiveNodeId] = useState(null);
-  const [data, setData] = useState(() => {
-    const saved = localStorage.getItem('okpori_lineage');
-    return saved ? JSON.parse(saved) : lineageData;
-  });
-  const [galleryItems, setGalleryItems] = useState(() => {
-    const saved = localStorage.getItem('okpori_gallery');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [data, setData] = useState(() => safeReadStorage(STORAGE_KEYS.LINEAGE, lineageData));
+  const [galleryItems, setGalleryItems] = useState(() => safeReadStorage(STORAGE_KEYS.GALLERY, []));
   const [isAdminMode, setIsAdminMode] = useState(false);
-  const [clickCount, setClickCount] = useState(0);
   const [showNavGuide, setShowNavGuide] = useState(false);
   const [isLiteMode, setIsLiteMode] = useState(false);
+  const adminClickRef = useRef(0);
+  const adminTimerRef = useRef(null);
 
-  // Set showNavGuide when entering the tree
   React.useEffect(() => {
     if (showTree) {
       setShowNavGuide(true);
@@ -38,49 +62,47 @@ const App = () => {
   }, [showTree]);
 
   const handleAdminToggle = () => {
-    setClickCount(prev => {
-      if (prev + 1 >= 3) {
-        setIsAdminMode(true);
-        return 0;
-      }
-      return prev + 1;
-    });
-    // Reset click count after 2 seconds of inactivity
-    setTimeout(() => setClickCount(0), 2000);
+    if (adminTimerRef.current) {
+      clearTimeout(adminTimerRef.current);
+      adminTimerRef.current = null;
+    }
+    adminClickRef.current += 1;
+    if (adminClickRef.current >= 3) {
+      setIsAdminMode(true);
+      adminClickRef.current = 0;
+      return;
+    }
+    adminTimerRef.current = setTimeout(() => {
+      adminClickRef.current = 0;
+      adminTimerRef.current = null;
+    }, 2000);
   };
 
   const savePerson = (updatedPerson) => {
-    const updateRecursive = (node) => {
-      if (node.id === updatedPerson.id) {
-        return { ...node, ...updatedPerson };
-      }
-      if (node.children) {
-        return { ...node, children: node.children.map(updateRecursive) };
-      }
-      return node;
-    };
-
-    const newData = updateRecursive(data);
+    const newData = updateRecursive(data, updatedPerson);
     setData(newData);
-    localStorage.setItem('okpori_lineage', JSON.stringify(newData));
+    setSelectedPerson(updatedPerson);
+    safeWriteStorage(STORAGE_KEYS.LINEAGE, newData);
   };
 
   const saveGalleryItem = (item) => {
     const newGallery = [item, ...galleryItems];
+    if (!safeWriteStorage(STORAGE_KEYS.GALLERY, newGallery)) return;
     setGalleryItems(newGallery);
-    localStorage.setItem('okpori_gallery', JSON.stringify(newGallery));
   };
 
   const removeGalleryItem = (id) => {
-    const newGallery = galleryItems.filter(item => item.id !== id);
+    const newGallery = galleryItems.filter((item) => item.id !== id);
+    if (!safeWriteStorage(STORAGE_KEYS.GALLERY, newGallery)) return;
     setGalleryItems(newGallery);
-    localStorage.setItem('okpori_gallery', JSON.stringify(newGallery));
   };
 
   const resetArchive = () => {
-    const confirmed = window.confirm("This will reset all lineage edits and reload from the source file. Photographic archive will remain intact. Proceed?");
+    const confirmed = window.confirm(
+      'This will reset all lineage edits and reload from the source file. Photographic archive will remain intact. Proceed?'
+    );
     if (confirmed) {
-      localStorage.removeItem('okpori_lineage');
+      localStorage.removeItem(STORAGE_KEYS.LINEAGE);
       window.location.reload();
     }
   };
@@ -92,15 +114,20 @@ const App = () => {
       reader.onload = (event) => {
         try {
           const archive = JSON.parse(event.target.result);
-          if (archive.lineage && archive.gallery) {
-            localStorage.setItem('okpori_lineage', JSON.stringify(archive.lineage));
-            localStorage.setItem('okpori_gallery', JSON.stringify(archive.gallery));
+          if (
+            archive.lineage &&
+            Array.isArray(archive.gallery) &&
+            validateLineageShape(archive.lineage)
+          ) {
+            safeWriteStorage(STORAGE_KEYS.LINEAGE, archive.lineage);
+            safeWriteStorage(STORAGE_KEYS.GALLERY, archive.gallery);
             window.location.reload();
           } else {
             alert("This file doesn't seem to be a valid Okpori Archive.");
           }
         } catch (err) {
-          alert("Failed to read the archive file.");
+          console.error('[Okpori] Failed to parse imported archive:', err);
+          alert('Failed to read the archive file.');
         }
       };
       reader.readAsText(file);
@@ -110,12 +137,14 @@ const App = () => {
   const downloadArchive = () => {
     const archiveData = {
       lineage: data,
-      gallery: galleryItems
+      gallery: galleryItems,
     };
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(archiveData, null, 2));
+    const dataStr =
+      'data:text/json;charset=utf-8,' +
+      encodeURIComponent(JSON.stringify(archiveData, null, 2));
     const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "okpori_complete_archive.json");
+    downloadAnchorNode.setAttribute('href', dataStr);
+    downloadAnchorNode.setAttribute('download', STORAGE_KEYS.ARCHIVE_FILENAME);
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
@@ -125,17 +154,6 @@ const App = () => {
     setSelectedPerson(person);
     setIsPortalOpen(true);
     setActiveNodeId(person.id);
-  };
-
-  const findPerson = (node, id) => {
-    if (node.id === id) return node;
-    if (node.children) {
-      for (const child of node.children) {
-        const found = findPerson(child, id);
-        if (found) return found;
-      }
-    }
-    return null;
   };
 
   const handleSearchResult = (person) => {
@@ -160,21 +178,19 @@ const App = () => {
             transition={{ duration: 1 }}
             className="flex flex-col"
           >
-            {/* Header & Search Area */}
             <div className="relative pt-32 pb-16 px-6 flex flex-col items-center">
-              {/* Legacy Mark - Floating above search */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="mb-8"
               >
-                <img 
-                  src="/crest.png" 
-                  alt="Legacy Mark" 
+                <img
+                  src="/crest.png"
+                  alt="Legacy Mark"
                   className="w-16 h-16 object-contain opacity-60 hover:opacity-100 transition-opacity cursor-pointer drop-shadow-[0_0_15px_rgba(212,175,55,0.2)]"
                 />
               </motion.div>
-              
+
               <Search data={data} onResultClick={handleSearchResult} />
 
               <motion.div
@@ -184,15 +200,19 @@ const App = () => {
                 className="text-center mt-16 max-w-2xl"
               >
                 <div className="h-px w-12 bg-gold/40 mx-auto mb-6" />
-                <h2 className="text-gold uppercase tracking-[0.5em] text-[10px] mb-2 font-sans font-light">The Okpori Archive</h2>
-                <h1 className="text-5xl md:text-6xl font-serif text-parchment italic mb-6 tracking-tight">Hall of Records</h1>
+                <h2 className="text-gold uppercase tracking-[0.5em] text-[10px] mb-2 font-sans font-light">
+                  The Okpori Archive
+                </h2>
+                <h1 className="text-5xl md:text-6xl font-serif text-parchment italic mb-6 tracking-tight">
+                  Hall of Records
+                </h1>
                 <p className="text-parchment/50 font-serif italic text-lg leading-relaxed">
-                  "Each name a story, each branch a legacy. Navigate through time to find your place in the Okpori flame."
+                  "Each name a story, each branch a legacy. Navigate through time to find your place
+                  in the Okpori flame."
                 </p>
               </motion.div>
             </div>
 
-            {/* Interactive Tree Section */}
             {!isLiteMode ? (
               <FamilyTree3D
                 data={data}
@@ -203,7 +223,7 @@ const App = () => {
             ) : (
               <div className="relative">
                 <div className="absolute top-6 right-6 z-10">
-                  <button 
+                  <button
                     onClick={() => setIsLiteMode(false)}
                     className="border border-gold/30 text-gold px-4 py-2 text-[10px] uppercase tracking-widest hover:bg-gold/10 transition-colors rounded-full"
                   >
@@ -218,27 +238,23 @@ const App = () => {
               </div>
             )}
 
-            {/* Cinematic Pillars Section */}
             <Pillars />
 
-            {/* Dedicated Photographic Archive */}
             {!isLiteMode ? (
-              <VisualArchive3D 
-                items={galleryItems} 
-                onAdd={saveGalleryItem} 
-                onDelete={removeGalleryItem} 
-                isLiteMode={isLiteMode}
+              <VisualArchive3D
+                items={galleryItems}
+                onAdd={saveGalleryItem}
+                onDelete={removeGalleryItem}
                 onToggleLiteMode={() => setIsLiteMode(true)}
               />
             ) : (
-              <VisualArchive 
-                items={galleryItems} 
-                onAdd={saveGalleryItem} 
-                onDelete={removeGalleryItem} 
+              <VisualArchive
+                items={galleryItems}
+                onAdd={saveGalleryItem}
+                onDelete={removeGalleryItem}
               />
             )}
 
-            {/* Floating Navigation Guide */}
             <AnimatePresence>
               {showNavGuide && (
                 <motion.div
@@ -254,11 +270,10 @@ const App = () => {
               )}
             </AnimatePresence>
 
-            {/* Footer */}
             <footer className="py-24 border-t border-gold/10 text-center bg-black relative">
               <AnimatePresence>
                 {isAdminMode && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
@@ -272,13 +287,11 @@ const App = () => {
                       Backup
                     </button>
                     <div className="relative group">
-                      <button
-                        className="bg-charcoal border border-gold/40 text-gold px-8 py-3 text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-gold/10 transition-all shadow-xl flex items-center gap-3 border-x-0"
-                      >
+                      <button className="bg-charcoal border border-gold/40 text-gold px-8 py-3 text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-gold/10 transition-all shadow-xl flex items-center gap-3 border-x-0">
                         Import Archive
                       </button>
-                      <input 
-                        type="file" 
+                      <input
+                        type="file"
                         accept=".json"
                         onChange={importArchive}
                         className="absolute inset-0 opacity-0 cursor-pointer"
@@ -288,24 +301,24 @@ const App = () => {
                       onClick={resetArchive}
                       className="bg-charcoal border border-gold/40 text-gold px-8 py-3 rounded-r-full text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-gold/20 transition-all shadow-xl flex items-center gap-3 group border-l-gold/10"
                     >
-                      Sync Archive
+                      Reset Lineage
                     </button>
                   </motion.div>
                 )}
               </AnimatePresence>
-              
+
               <motion.div
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
                 className="space-y-6 pt-12"
               >
-                <img 
-                  src="/crest.png" 
-                  alt="Okpori Signature Seal" 
+                <img
+                  src="/crest.png"
+                  alt="Okpori Signature Seal"
                   className="w-20 h-20 mx-auto opacity-40 hover:opacity-80 transition-all duration-700 hover:scale-110 mb-4"
                 />
-                <button 
+                <button
                   onClick={handleAdminToggle}
                   className="text-gold font-serif text-4xl italic tracking-widest hover:brightness-125 transition-all select-none focus:outline-none"
                 >
@@ -322,6 +335,7 @@ const App = () => {
       </AnimatePresence>
 
       <ProfilePortal
+        key={selectedPerson?.id ?? 'portal-empty'}
         person={selectedPerson}
         isOpen={isPortalOpen}
         onSave={savePerson}
