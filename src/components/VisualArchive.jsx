@@ -53,15 +53,13 @@ const VisualArchive = ({ items, onAdd, onDelete, isAdminMode }) => {
             </p>
           </div>
 
-          {isAdminMode && (
-            <button
-              onClick={() => setIsAdding(true)}
-              className="flex items-center gap-3 px-8 py-4 bg-gold text-black rounded-full font-bold uppercase text-[10px] tracking-widest hover:scale-105 transition-all shadow-[0_10px_30px_rgba(212,175,55,0.2)]"
-            >
-              <Plus size={16} />
-              Add to Archive
-            </button>
-          )}
+          <button
+            onClick={() => setIsAdding(true)}
+            className="flex items-center gap-3 px-8 py-4 bg-gold text-black rounded-full font-bold uppercase text-[10px] tracking-widest hover:scale-105 transition-all shadow-[0_10px_30px_rgba(212,175,55,0.2)] cursor-pointer"
+          >
+            <Plus size={16} />
+            Add to Archive
+          </button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -125,11 +123,18 @@ const VisualArchive = ({ items, onAdd, onDelete, isAdminMode }) => {
         </div>
 
         {items.length === 0 && !isAdding && (
-          <div className="py-32 text-center border-2 border-dashed border-gold/10 rounded-3xl">
-            <Camera size={48} className="mx-auto text-gold/10 mb-6" />
-            <p className="text-gold/30 font-serif italic text-xl">
-              The visual archive is empty. Begin preserving your history.
+          <div className="py-24 text-center border-2 border-dashed border-gold/15 rounded-3xl bg-black/30 p-8 flex flex-col items-center justify-center">
+            <Camera size={48} className="mx-auto text-gold/30 mb-6" />
+            <p className="text-gold/60 font-serif italic text-xl mb-4">
+              The visual archive is awaiting photographs.
             </p>
+            <button
+              onClick={() => setIsAdding(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-gold text-black rounded-full font-bold uppercase text-[10px] tracking-widest hover:scale-105 transition-all cursor-pointer shadow-[0_0_20px_rgba(212,175,55,0.2)]"
+            >
+              <Plus size={14} />
+              Add First Photograph
+            </button>
           </div>
         )}
       </div>

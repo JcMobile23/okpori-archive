@@ -7,6 +7,7 @@ import VisualArchive from './components/VisualArchive';
 import lineageData from './data/lineage.json';
 import { motion, AnimatePresence } from 'framer-motion';
 import { STORAGE_KEYS, HONOREE_CONFIG } from './constants';
+import { DEFAULT_GALLERY } from './data/defaultGallery';
 import { updateRecursive, findPerson, validateLineageShape } from './utils/tree';
 import ThreeSafe from './components/ThreeSafe';
 import { BoundaryFallback } from './components/ErrorBoundary';
@@ -100,7 +101,13 @@ const App = () => {
   const [isPortalOpen, setIsPortalOpen] = useState(false);
   const [activeNodeId, setActiveNodeId] = useState(null);
   const [data, setData] = useState(() => safeReadStorage(STORAGE_KEYS.LINEAGE, lineageData));
-  const [galleryItems, setGalleryItems] = useState(() => safeReadStorage(STORAGE_KEYS.GALLERY, []));
+  const [galleryItems, setGalleryItems] = useState(() => {
+    const saved = safeReadStorage(STORAGE_KEYS.GALLERY, null);
+    if (saved && Array.isArray(saved) && saved.length > 0) {
+      return saved;
+    }
+    return DEFAULT_GALLERY;
+  });
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [showNavGuide, setShowNavGuide] = useState(false);
   const [isLiteMode, setIsLiteMode] = useState(false);

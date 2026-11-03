@@ -14,5 +14,12 @@ export const HONOREE_CONFIG = {
 
 export const isHonoree = (person) => {
   if (!person) return false;
-  return person.id === HONOREE_CONFIG.id || person.name?.toUpperCase() === HONOREE_CONFIG.name;
+  const name = String(person.name || '').trim().toUpperCase();
+  const id = String(person.id || '').trim().toLowerCase();
+  return (
+    id === 'ayodele-ef' ||
+    id.includes('ayodele') ||
+    name === 'AYODELE' ||
+    name.includes('AYODELE')
+  );
 };

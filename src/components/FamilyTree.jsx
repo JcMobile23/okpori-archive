@@ -31,7 +31,7 @@ const FamilyTree = ({ data, onNodeClick, activeNodeId }) => {
       const svg = d3.select(svgRef.current);
       const nodes = d3.select(gRef.current).selectAll('.node');
 
-      const filtered = nodes.filter((d) => d.data.id === activeNodeId);
+      const filtered = nodes.filter((d) => d && d.data && d.data.id === activeNodeId);
       if (filtered.size() === 0) return;
 
       const targetNode = filtered.datum();
@@ -149,51 +149,72 @@ const FamilyTree = ({ data, onNodeClick, activeNodeId }) => {
     feMerge.append('feMergeNode').attr('in', 'coloredBlur');
     feMerge.append('feMergeNode').attr('in', 'SourceGraphic');
 
-    // Base circle or birthday pulsing circle
+    const honoreeNodes = node.filter((d) => d && d.data && isHonoree(d.data));
+
+    // Glowing halo ring around Ayodele
+    honoreeNodes
+      .append('circle')
+      .attr('r', 20)
+      .attr('fill', 'none')
+      .attr('stroke', '#FFD700')
+      .attr('stroke-width', 2)
+      .attr('stroke-dasharray', '4 2')
+      .attr('class', 'birthday-circle-pulse')
+      .style('pointer-events', 'none');
+
+    // Base circle
     node
       .append('circle')
       .attr('r', (d) => (isHonoree(d.data) ? 14 : 10))
       .attr('data-id', (d) => d.data.id)
       .attr('class', (d) =>
         isHonoree(d.data)
-          ? 'node-circle birthday-circle-pulse stroke-[#FFD700]'
+          ? 'node-circle birthday-circle-pulse'
           : 'node-circle'
+      )
+      .attr('style', (d) =>
+        isHonoree(d.data) ? 'stroke: #FFD700; stroke-width: 3.5px; fill: #201700;' : ''
       );
 
-    // Floating Birthday Crown for Ayodele
-    const honoreeNodes = node.filter((d) => isHonoree(d.data));
-
+    // Crown for Ayodele
     honoreeNodes
       .append('text')
       .attr('dy', '-1.2em')
       .attr('x', 0)
       .attr('text-anchor', 'middle')
-      .attr('class', 'crown-float text-base select-none')
+      .attr('style', 'font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; font-size: 20px;')
+      .attr('class', 'crown-float select-none')
       .text('👑');
 
     node
       .append('text')
-      .attr('dy', (d) => (isHonoree(d.data) ? '2.4em' : '2.2em'))
+      .attr('dy', (d) => (isHonoree(d.data) ? '2.5em' : '2.2em'))
       .attr('x', 0)
       .attr('text-anchor', 'middle')
       .attr('class', (d) =>
         isHonoree(d.data)
-          ? 'node-label font-bold text-xs fill-[#FFD700] filter drop-shadow-[0_0_8px_rgba(255,215,0,0.8)]'
+          ? 'node-label font-bold text-xs'
           : 'node-label font-bold text-xs'
+      )
+      .attr('style', (d) =>
+        isHonoree(d.data)
+          ? 'fill: #FFD700; font-weight: bold; filter: drop-shadow(0 0 6px #FFD700);'
+          : ''
       )
       .text((d) => d.data.name);
 
     honoreeNodes
       .append('text')
-      .attr('dy', '3.8em')
+      .attr('dy', '4.0em')
       .attr('x', 0)
       .attr('text-anchor', 'middle')
-      .attr('class', 'font-sans font-bold text-[9px] fill-[#FFD700] tracking-widest uppercase select-none')
+      .attr('style', 'fill: #FFD700; font-size: 9px; font-weight: bold; letter-spacing: 0.15em;')
+      .attr('class', 'select-none uppercase')
       .text('✨ Birthday Honoree ✨');
 
     node
       .append('text')
-      .attr('dy', (d) => (isHonoree(d.data) ? '5.2em' : '3.6em'))
+      .attr('dy', (d) => (isHonoree(d.data) ? '5.4em' : '3.6em'))
       .attr('x', 0)
       .attr('text-anchor', 'middle')
       .attr('class', 'node-year opacity-70')
@@ -203,22 +224,28 @@ const FamilyTree = ({ data, onNodeClick, activeNodeId }) => {
   // Effect B: only update active node styling on change
   useEffect(() => {
     if (!gRef.current) return;
-    const nodes = d3.select(gRef.current).selectAll('.node circle');
-    nodes.attr('class', function () {
-      const d = d3.select(this).datum();
-      if (!d) return 'node-circle';
+    const nodes = d3.select(gRef.current).selectAll('.node circle.node-circle');
+    nodes.each(function () {
+      const el = d3.select(this);
+      const d = el.datum();
+      if (!d || !d.data) return;
       const isBday = isHonoree(d.data);
       const isActive = d.data.id === activeNodeId;
       if (isBday) {
-        return `node-circle birthday-circle-pulse stroke-[#FFD700] ${
-          isActive ? 'stroke-[5px] filter drop-shadow-[0_0_22px_rgba(255,215,0,1)]' : ''
-        }`;
+        el.attr(
+          'style',
+          `stroke: #FFD700; stroke-width: ${isActive ? '5px' : '3.5px'}; fill: #201700; filter: drop-shadow(0 0 ${
+            isActive ? '24px' : '12px'
+          } #FFD700);`
+        );
+      } else if (isActive) {
+        el.attr(
+          'style',
+          'stroke: #D4AF37; stroke-width: 4px; filter: drop-shadow(0 0 15px rgba(212,175,55,1));'
+        );
+      } else {
+        el.attr('style', '');
       }
-      return `node-circle ${
-        isActive
-          ? 'stroke-gold stroke-[4px] filter drop-shadow-[0_0_15px_rgba(212,175,55,1)]'
-          : ''
-      }`;
     });
   }, [activeNodeId]);
 

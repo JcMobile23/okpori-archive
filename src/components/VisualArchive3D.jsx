@@ -143,15 +143,13 @@ const VisualArchive3D = ({ items, onAdd, onDelete, onToggleLiteMode, isAdminMode
             The 3D Archive
           </h2>
           <h3 className="text-4xl font-serif text-parchment italic">Floating Memories</h3>
-          {isAdminMode && (
-            <button
-              onClick={() => setIsAdding(true)}
-              className="flex items-center gap-3 px-6 py-3 mt-4 bg-gold text-black rounded-full font-bold uppercase text-[10px] tracking-widest hover:scale-105 transition-all shadow-[0_10px_30px_rgba(212,175,55,0.2)]"
-            >
-              <Plus size={16} />
-              Add to Archive
-            </button>
-          )}
+          <button
+            onClick={() => setIsAdding(true)}
+            className="flex items-center gap-3 px-6 py-3 mt-4 bg-gold text-black rounded-full font-bold uppercase text-[10px] tracking-widest hover:scale-105 transition-all shadow-[0_10px_30px_rgba(212,175,55,0.2)] cursor-pointer"
+          >
+            <Plus size={16} />
+            Add to Archive
+          </button>
         </div>
 
         <div className="pointer-events-auto">
@@ -165,9 +163,16 @@ const VisualArchive3D = ({ items, onAdd, onDelete, onToggleLiteMode, isAdminMode
       </div>
 
       {items.length === 0 && !isAdding && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none">
-          <Camera size={48} className="text-gold/10 mb-6" />
-          <p className="text-gold/30 font-serif italic text-xl">The visual archive is empty.</p>
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-auto">
+          <Camera size={48} className="text-gold/20 mb-6" />
+          <p className="text-gold/60 font-serif italic text-xl mb-4">The visual archive is awaiting photographs.</p>
+          <button
+            onClick={() => setIsAdding(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-gold text-black rounded-full font-bold uppercase text-[10px] tracking-widest hover:scale-105 transition-all shadow-[0_10px_30px_rgba(212,175,55,0.2)] cursor-pointer"
+          >
+            <Plus size={14} />
+            Add First Photograph
+          </button>
         </div>
       )}
 
