@@ -6,7 +6,7 @@ import Pillars from './components/Pillars';
 import VisualArchive from './components/VisualArchive';
 import lineageData from './data/lineage.json';
 import { motion, AnimatePresence } from 'framer-motion';
-import { STORAGE_KEYS } from './constants';
+import { STORAGE_KEYS, HONOREE_CONFIG } from './constants';
 import { updateRecursive, findPerson, validateLineageShape } from './utils/tree';
 import ThreeSafe from './components/ThreeSafe';
 import { BoundaryFallback } from './components/ErrorBoundary';
@@ -238,8 +238,37 @@ const App = () => {
 
   const handleEnterApp = () => setShowTree(true);
 
+  const handleCelebrateAyodele = () => {
+    setShowTree(true);
+    const ayodele = findPerson(data, HONOREE_CONFIG.id);
+    if (ayodele) {
+      setActiveNodeId(ayodele.id);
+      setSelectedPerson(ayodele);
+      setIsPortalOpen(true);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-charcoal selection:bg-gold/30 selection:text-gold">
+    <div className="min-h-screen bg-charcoal selection:bg-gold/30 selection:text-gold pt-11">
+      {/* Royal Birthday Announcement Ribbon */}
+      <div className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-black via-[#1c1402] to-black border-b border-[#FFD700]/30 py-2.5 px-4 backdrop-blur-md shadow-[0_0_20px_rgba(255,215,0,0.15)] flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2 overflow-hidden mx-auto sm:mx-0">
+          <span className="text-sm select-none crown-float">👑</span>
+          <p className="text-[11px] sm:text-xs font-serif italic text-parchment tracking-wide truncate">
+            <span className="text-[#FFD700] font-sans font-bold uppercase text-[10px] tracking-widest mr-2 not-italic">
+              Celebration Today:
+            </span>
+            Happy Birthday to <span className="text-[#FFD700] font-bold">Ayodele</span>! The Okpori House honors her today.
+          </p>
+        </div>
+        <button
+          onClick={handleCelebrateAyodele}
+          className="shrink-0 flex items-center gap-1.5 px-3 py-1 bg-[#FFD700]/15 hover:bg-[#FFD700] text-[#FFD700] hover:text-black border border-[#FFD700]/40 rounded-full text-[9px] uppercase font-bold tracking-widest transition-all shadow-[0_0_10px_rgba(255,215,0,0.2)] cursor-pointer"
+        >
+          <span>✨</span>
+          <span>Celebrate Her</span>
+        </button>
+      </div>
       <AnimatePresence mode="wait">
         {boundaryToast && (
           <motion.div

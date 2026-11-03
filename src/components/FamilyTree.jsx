@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
+import { isHonoree } from '../constants';
 
 const FamilyTree = ({ data, onNodeClick, activeNodeId }) => {
   const svgRef = useRef();
@@ -148,23 +149,51 @@ const FamilyTree = ({ data, onNodeClick, activeNodeId }) => {
     feMerge.append('feMergeNode').attr('in', 'coloredBlur');
     feMerge.append('feMergeNode').attr('in', 'SourceGraphic');
 
+    // Base circle or birthday pulsing circle
     node
       .append('circle')
-      .attr('r', 10)
+      .attr('r', (d) => (isHonoree(d.data) ? 14 : 10))
       .attr('data-id', (d) => d.data.id)
-      .attr('class', 'node-circle');
+      .attr('class', (d) =>
+        isHonoree(d.data)
+          ? 'node-circle birthday-circle-pulse stroke-[#FFD700]'
+          : 'node-circle'
+      );
 
-    node
+    // Floating Birthday Crown for Ayodele
+    const honoreeNodes = node.filter((d) => isHonoree(d.data));
+
+    honoreeNodes
       .append('text')
-      .attr('dy', '2.2em')
+      .attr('dy', '-1.2em')
       .attr('x', 0)
       .attr('text-anchor', 'middle')
-      .attr('class', 'node-label font-bold text-xs')
-      .text((d) => d.data.name);
+      .attr('class', 'crown-float text-base select-none')
+      .text('👑');
 
     node
       .append('text')
-      .attr('dy', '3.6em')
+      .attr('dy', (d) => (isHonoree(d.data) ? '2.4em' : '2.2em'))
+      .attr('x', 0)
+      .attr('text-anchor', 'middle')
+      .attr('class', (d) =>
+        isHonoree(d.data)
+          ? 'node-label font-bold text-xs fill-[#FFD700] filter drop-shadow-[0_0_8px_rgba(255,215,0,0.8)]'
+          : 'node-label font-bold text-xs'
+      )
+      .text((d) => d.data.name);
+
+    honoreeNodes
+      .append('text')
+      .attr('dy', '3.8em')
+      .attr('x', 0)
+      .attr('text-anchor', 'middle')
+      .attr('class', 'font-sans font-bold text-[9px] fill-[#FFD700] tracking-widest uppercase select-none')
+      .text('✨ Birthday Honoree ✨');
+
+    node
+      .append('text')
+      .attr('dy', (d) => (isHonoree(d.data) ? '5.2em' : '3.6em'))
       .attr('x', 0)
       .attr('text-anchor', 'middle')
       .attr('class', 'node-year opacity-70')
@@ -175,18 +204,22 @@ const FamilyTree = ({ data, onNodeClick, activeNodeId }) => {
   useEffect(() => {
     if (!gRef.current) return;
     const nodes = d3.select(gRef.current).selectAll('.node circle');
-    nodes.attr(
-      'class',
-      function () {
-        const d = d3.select(this).datum();
-        if (!d) return 'node-circle';
-        return `node-circle ${
-          d.data.id === activeNodeId
-            ? 'stroke-gold stroke-[4px] filter drop-shadow-[0_0_15px_rgba(212,175,55,1)]'
-            : ''
+    nodes.attr('class', function () {
+      const d = d3.select(this).datum();
+      if (!d) return 'node-circle';
+      const isBday = isHonoree(d.data);
+      const isActive = d.data.id === activeNodeId;
+      if (isBday) {
+        return `node-circle birthday-circle-pulse stroke-[#FFD700] ${
+          isActive ? 'stroke-[5px] filter drop-shadow-[0_0_22px_rgba(255,215,0,1)]' : ''
         }`;
       }
-    );
+      return `node-circle ${
+        isActive
+          ? 'stroke-gold stroke-[4px] filter drop-shadow-[0_0_15px_rgba(212,175,55,1)]'
+          : ''
+      }`;
+    });
   }, [activeNodeId]);
 
   return (

@@ -3,14 +3,16 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Line, Text, RoundedBox } from '@react-three/drei';
 import * as d3 from 'd3';
 import * as THREE from 'three';
+import { isHonoree } from '../constants';
 
 const Node = ({ node, activeNodeId, onClick }) => {
   const isActive = node.data.id === activeNodeId;
   const isRoot = node.depth === 0;
+  const isBirthday = isHonoree(node.data);
 
-  const bgColor = isActive ? '#111111' : isRoot ? '#2A2000' : '#1A1A1A';
-  const borderColor = isActive ? '#ffffff' : isRoot ? '#D4AF37' : '#554411';
-  const textColor = isActive || isRoot ? '#D4AF37' : '#E8DCC4';
+  const bgColor = isBirthday ? '#221800' : isActive ? '#111111' : isRoot ? '#2A2000' : '#1A1A1A';
+  const borderColor = isBirthday ? '#FFD700' : isActive ? '#ffffff' : isRoot ? '#D4AF37' : '#554411';
+  const textColor = isBirthday || isActive || isRoot ? '#FFD700' : '#E8DCC4';
 
   return (
     <group
@@ -35,8 +37,34 @@ const Node = ({ node, activeNodeId, onClick }) => {
           <meshBasicMaterial color={borderColor} />
         </RoundedBox>
 
+        {isBirthday && (
+          <>
+            <Text
+              position={[0, 46, 8]}
+              fontSize={18}
+              anchorX="center"
+              anchorY="middle"
+              raycast={() => null}
+            >
+              👑
+            </Text>
+            <Text
+              position={[0, -21, 6]}
+              fontSize={6.5}
+              color="#FFD700"
+              fontWeight="bold"
+              letterSpacing={0.15}
+              anchorX="center"
+              anchorY="middle"
+              raycast={() => null}
+            >
+              ✨ BIRTHDAY HONOREE ✨
+            </Text>
+          </>
+        )}
+
         <Text
-          position={[0, 10, 6]}
+          position={[0, isBirthday ? 12 : 10, 6]}
           fontSize={12}
           color={textColor}
           anchorX="center"

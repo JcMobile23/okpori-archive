@@ -1,10 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { X, Calendar, MapPin, User, Quote, Edit3, Save, Camera, Trash2 } from 'lucide-react';
+import { X, Calendar, MapPin, User, Quote, Edit3, Save, Camera, Trash2, Sparkles, Heart } from 'lucide-react';
+import confetti from 'canvas-confetti';
+import { isHonoree, HONOREE_CONFIG } from '../constants';
 
 const ProfilePortal = ({ person, isOpen, onClose, onSave }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState(() => (person ? { ...person } : null));
+  const [blessingCount, setBlessingCount] = useState(0);
+
+  const isBday = isHonoree(person);
+
+  const triggerBirthdayConfetti = () => {
+    confetti({
+      particleCount: 110,
+      spread: 80,
+      origin: { y: 0.6 },
+      colors: ['#D4AF37', '#FFD700', '#F59E0B', '#FFFBEB', '#FFFFFF'],
+      disableForReducedMotion: true,
+    });
+    setBlessingCount((prev) => prev + 1);
+  };
+
+  useEffect(() => {
+    if (isOpen && isBday) {
+      triggerBirthdayConfetti();
+    }
+  }, [isOpen, isBday]);
 
   if (!person || !editedData) return null;
 
@@ -38,11 +60,17 @@ const ProfilePortal = ({ person, isOpen, onClose, onSave }) => {
           />
 
           <div
-            className="relative w-full max-w-5xl bg-[#0a0a0a] border border-gold/20 rounded-3xl overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8),0_0_30px_rgba(212,175,55,0.05)] animate-fade-in"
+            className={`relative w-full max-w-5xl bg-[#0a0a0a] border rounded-3xl overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8),0_0_30px_rgba(212,175,55,0.05)] animate-fade-in ${
+              isBday ? 'border-[#FFD700]/50 shadow-[0_0_50px_rgba(255,215,0,0.15)]' : 'border-gold/20'
+            }`}
             style={{ animationDuration: '400ms' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
+            <div
+              className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent ${
+                isBday ? 'via-[#FFD700] h-1.5' : 'via-gold/40'
+              } to-transparent`}
+            />
             <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold/10 to-transparent opacity-20" />
 
             <div className="absolute top-8 right-8 flex items-center gap-4 z-30">
@@ -77,27 +105,48 @@ const ProfilePortal = ({ person, isOpen, onClose, onSave }) => {
 
             <div className="grid grid-cols-1 md:grid-cols-5 gap-0 max-h-[85vh] overflow-y-auto">
               <aside className="md:col-span-2 relative border-r border-gold/10 bg-gradient-to-b from-gold/5 to-transparent p-10 flex flex-col items-center text-center">
-                <div className="w-40 h-40 rounded-full border-2 border-gold/30 overflow-hidden bg-black mb-8 flex items-center justify-center group relative">
-                  {editedData.imageUrl ? (
-                    <img
-                      src={editedData.imageUrl}
-                      alt={editedData.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <User size={56} className="text-gold/20" />
+                {isBday && (
+                  <div className="mb-2 flex items-center gap-1.5 px-3 py-1 bg-[#FFD700]/10 border border-[#FFD700]/30 rounded-full text-[#FFD700] text-[9px] uppercase font-bold tracking-widest animate-pulse">
+                    <Sparkles size={12} />
+                    <span>Today's Honoree</span>
+                  </div>
+                )}
+
+                <div className="relative mb-8">
+                  {isBday && (
+                    <div className="absolute -top-7 left-1/2 -translate-x-1/2 text-2xl crown-float select-none z-10 filter drop-shadow-[0_0_8px_rgba(255,215,0,0.8)]">
+                      👑
+                    </div>
                   )}
-                  {isEditing && (
-                    <label className="absolute inset-0 flex items-center justify-center bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                      <Camera size={24} className="text-gold" />
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden"
+
+                  <div
+                    className={`w-40 h-40 rounded-full border-2 overflow-hidden bg-black flex items-center justify-center group relative ${
+                      isBday
+                        ? 'border-[#FFD700] shadow-[0_0_25px_rgba(255,215,0,0.4)]'
+                        : 'border-gold/30'
+                    }`}
+                  >
+                    {editedData.imageUrl ? (
+                      <img
+                        src={editedData.imageUrl}
+                        alt={editedData.name}
+                        className="w-full h-full object-cover"
                       />
-                    </label>
-                  )}
+                    ) : (
+                      <User size={56} className="text-gold/20" />
+                    )}
+                    {isEditing && (
+                      <label className="absolute inset-0 flex items-center justify-center bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                        <Camera size={24} className="text-gold" />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    )}
+                  </div>
                 </div>
 
                 <h1 className="text-4xl font-serif text-gold italic tracking-wider leading-tight mb-2">
@@ -171,6 +220,40 @@ const ProfilePortal = ({ person, isOpen, onClose, onSave }) => {
               </aside>
 
               <section className="md:col-span-3 p-10 md:p-14 space-y-8">
+                {isBday && (
+                  <div className="relative overflow-hidden rounded-2xl border border-[#FFD700]/40 bg-gradient-to-br from-[#FFD700]/15 via-black to-[#FFD700]/5 p-6 shadow-[0_0_30px_rgba(255,215,0,0.1)]">
+                    <div className="absolute top-2 right-3 text-3xl opacity-20 pointer-events-none select-none">
+                      🎂
+                    </div>
+                    <div className="flex items-center gap-2 text-[#FFD700] text-[10px] uppercase font-bold tracking-widest mb-2">
+                      <Sparkles size={14} className="text-[#FFD700]" />
+                      <span>Lineage Celebration • Special Birthday Tribute</span>
+                    </div>
+
+                    <h2 className="text-2xl md:text-3xl font-serif text-parchment italic mb-2">
+                      Happy Birthday, {editedData.name}!
+                    </h2>
+
+                    <p className="font-serif italic text-parchment/90 text-base leading-relaxed mb-4">
+                      "{HONOREE_CONFIG.greeting}"
+                    </p>
+
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-4 border-t border-gold/20">
+                      <p className="text-[#FFD700]/80 font-serif italic text-sm">
+                        {HONOREE_CONFIG.blessing}
+                      </p>
+
+                      <button
+                        onClick={triggerBirthdayConfetti}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#FFD700] to-gold text-black rounded-full font-bold text-[10px] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,215,0,0.3)] shrink-0 cursor-pointer"
+                      >
+                        <Heart size={14} className="fill-black" />
+                        <span>Send Birthday Love {blessingCount > 0 ? `(${blessingCount})` : ''}</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
                     <Quote size={18} className="text-gold/40 shrink-0" />
@@ -221,7 +304,11 @@ const ProfilePortal = ({ person, isOpen, onClose, onSave }) => {
                     <div className="pt-6 border-t border-gold/10 flex justify-end">
                       <button
                         onClick={() => {
-                          if (window.confirm('Remove this saved image and personal data from this profile?')) {
+                          if (
+                            window.confirm(
+                              'Remove this saved image and personal data from this profile?'
+                            )
+                          ) {
                             setEditedData((prev) =>
                               prev
                                 ? {
