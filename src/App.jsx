@@ -100,7 +100,18 @@ const App = () => {
   const [selectedPerson, setSelectedPerson] = useState(null);
   const [isPortalOpen, setIsPortalOpen] = useState(false);
   const [activeNodeId, setActiveNodeId] = useState(null);
-  const [data, setData] = useState(() => safeReadStorage(STORAGE_KEYS.LINEAGE, lineageData));
+  const [data, setData] = useState(() => {
+    const saved = safeReadStorage(STORAGE_KEYS.LINEAGE, null);
+    if (!saved) return lineageData;
+    const ayodeleSaved = findPerson(saved, HONOREE_CONFIG.id);
+    const ayodeleBase = findPerson(lineageData, HONOREE_CONFIG.id);
+    if (ayodeleBase?.imageUrl && !ayodeleSaved?.imageUrl) {
+      const merged = updateRecursive(saved, { id: HONOREE_CONFIG.id, imageUrl: ayodeleBase.imageUrl });
+      safeWriteStorage(STORAGE_KEYS.LINEAGE, merged);
+      return merged;
+    }
+    return saved;
+  });
   const [galleryItems, setGalleryItems] = useState(() => {
     const saved = safeReadStorage(STORAGE_KEYS.GALLERY, null);
     if (saved && Array.isArray(saved) && saved.length > 0) {
