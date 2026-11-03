@@ -1,6 +1,7 @@
-import React, { useMemo, useRef, useEffect } from 'react';
+import React, { useMemo, useRef, useEffect, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Line, Text, RoundedBox } from '@react-three/drei';
+import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
 import * as d3 from 'd3';
 import * as THREE from 'three';
 import { isHonoree } from '../constants';
@@ -152,6 +153,31 @@ const CameraController = ({ activeNodeId, nodes }) => {
   return null;
 };
 
+const ZoomController = ({ zoomSignal }) => {
+  const { camera, controls } = useThree();
+
+  useEffect(() => {
+    if (!zoomSignal) return;
+    if (zoomSignal.type === 'in') {
+      camera.position.multiplyScalar(0.82);
+    } else if (zoomSignal.type === 'out') {
+      camera.position.multiplyScalar(1.22);
+    } else if (zoomSignal.type === 'slider') {
+      const dist = zoomSignal.value;
+      const dir = camera.position.clone().normalize();
+      camera.position.copy(dir.multiplyScalar(dist));
+    } else if (zoomSignal.type === 'fit') {
+      camera.position.set(0, 450, 450);
+      if (controls) {
+        controls.target.set(0, 0, 0);
+        controls.update();
+      }
+    }
+  }, [zoomSignal, camera, controls]);
+
+  return null;
+};
+
 const TreeGraph = ({ data, activeNodeId, onNodeClick }) => {
   const { nodes, links } = useMemo(() => {
     if (!data) return { nodes: [], links: [] };
@@ -195,23 +221,83 @@ const TreeGraph = ({ data, activeNodeId, onNodeClick }) => {
 };
 
 const FamilyTree3D = ({ data, onNodeClick, activeNodeId, onToggleLiteMode }) => {
+  const [zoomSignal, setZoomSignal] = useState(null);
+  const [sliderVal, setSliderVal] = useState(560);
+
+  const handleZoomIn = () => setZoomSignal({ id: Date.now(), type: 'in' });
+  const handleZoomOut = () => setZoomSignal({ id: Date.now(), type: 'out' });
+  const handleFit = () => setZoomSignal({ id: Date.now(), type: 'fit' });
+  const handleSlider = (e) => {
+    const val = parseFloat(e.target.value);
+    setSliderVal(val);
+    setZoomSignal({ id: Date.now(), type: 'slider', value: val });
+  };
+
   return (
-    <div className="w-full h-[700px] relative bg-black border-t border-b border-gold/10 overflow-hidden cursor-move">
+    <div
+      className="w-full h-[650px] sm:h-[750px] relative bg-black border-t border-b border-gold/10 overflow-hidden cursor-move touch-none select-none"
+      style={{ touchAction: 'none' }}
+    >
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-charcoal to-black opacity-80 pointer-events-none" />
 
       <div className="absolute top-6 left-6 z-10 pointer-events-none">
         <h3 className="text-gold font-serif text-xl tracking-widest">Ancestral Map</h3>
         <p className="text-[10px] text-parchment/30 uppercase tracking-[0.2em] italic">
-          Drag to pan map / Scroll to zoom
+          Drag to orbit • Pinch or use slider to zoom
         </p>
       </div>
 
       <div className="absolute top-6 right-6 z-10">
         <button
           onClick={onToggleLiteMode}
-          className="bg-black/50 backdrop-blur-md border border-gold/30 text-gold px-4 py-2 text-[10px] uppercase tracking-widest hover:bg-gold/10 hover:border-gold transition-all rounded-full shadow-[0_0_15px_rgba(212,175,55,0.1)]"
+          className="bg-black/50 backdrop-blur-md border border-gold/30 text-gold px-4 py-2 text-[10px] uppercase tracking-widest hover:bg-gold/10 hover:border-gold transition-all rounded-full shadow-[0_0_15px_rgba(212,175,55,0.1)] cursor-pointer"
         >
           Switch to Lite Mode (2D)
+        </button>
+      </div>
+
+      {/* Floating Navigation & Zoom Dock */}
+      <div className="absolute bottom-6 right-4 sm:right-6 z-20 flex items-center gap-1.5 sm:gap-2 bg-black/85 backdrop-blur-md border border-gold/30 px-3 py-1.5 sm:py-2 rounded-full shadow-[0_0_25px_rgba(0,0,0,0.85)]">
+        <button
+          onClick={handleZoomOut}
+          className="p-1.5 text-gold/80 hover:text-gold hover:bg-gold/10 rounded-full transition-colors active:scale-90 cursor-pointer"
+          aria-label="Zoom Out"
+          title="Zoom Out"
+        >
+          <ZoomOut size={16} />
+        </button>
+
+        <div className="flex items-center gap-1.5 px-1">
+          <input
+            type="range"
+            min="200"
+            max="1200"
+            step="20"
+            value={sliderVal}
+            onChange={handleSlider}
+            className="w-16 sm:w-28 accent-[#FFD700] cursor-pointer h-1.5 bg-gold/20 rounded-lg"
+            aria-label="3D Zoom level"
+          />
+        </div>
+
+        <button
+          onClick={handleZoomIn}
+          className="p-1.5 text-gold/80 hover:text-gold hover:bg-gold/10 rounded-full transition-colors active:scale-90 cursor-pointer"
+          aria-label="Zoom In"
+          title="Zoom In"
+        >
+          <ZoomIn size={16} />
+        </button>
+
+        <div className="h-4 w-px bg-gold/20 mx-0.5" />
+
+        <button
+          onClick={handleFit}
+          className="flex items-center gap-1 px-2.5 py-1 text-gold/90 hover:text-gold hover:bg-gold/10 rounded-full text-[10px] uppercase tracking-wider transition-colors active:scale-90 font-medium cursor-pointer"
+          title="Reset View / Fit to Screen"
+        >
+          <Maximize2 size={12} />
+          <span>Fit</span>
         </button>
       </div>
 
@@ -228,15 +314,21 @@ const FamilyTree3D = ({ data, onNodeClick, activeNodeId, onToggleLiteMode }) => 
 
         <ambientLight intensity={0.5} />
         <TreeGraph data={data} activeNodeId={activeNodeId} onNodeClick={onNodeClick} />
+        <ZoomController zoomSignal={zoomSignal} />
 
         <OrbitControls
+          makeDefault
           enableDamping
           dampingFactor={0.05}
-          minDistance={100}
-          maxDistance={4000}
-          maxPolarAngle={Math.PI / 2.2}
-          minPolarAngle={Math.PI / 6}
-          screenSpacePanning={false}
+          minDistance={80}
+          maxDistance={4500}
+          maxPolarAngle={Math.PI / 2.1}
+          minPolarAngle={Math.PI / 8}
+          screenSpacePanning={true}
+          touches={{
+            ONE: THREE.TOUCH.PAN,
+            TWO: THREE.TOUCH.DOLLY_PAN,
+          }}
         />
       </Canvas>
     </div>

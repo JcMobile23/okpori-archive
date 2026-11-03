@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
+import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
 import { isHonoree } from '../constants';
 
 const FamilyTree = ({ data, onNodeClick, activeNodeId }) => {
@@ -8,6 +9,7 @@ const FamilyTree = ({ data, onNodeClick, activeNodeId }) => {
   const gRef = useRef();
   const zoomRef = useRef();
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [currentZoom, setCurrentZoom] = useState(0.8);
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -23,6 +25,37 @@ const FamilyTree = ({ data, onNodeClick, activeNodeId }) => {
     window.addEventListener('resize', updateDimensions);
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
+
+  const handleZoomIn = () => {
+    if (!svgRef.current || !zoomRef.current) return;
+    d3.select(svgRef.current).transition().duration(300).call(zoomRef.current.scaleBy, 1.3);
+  };
+
+  const handleZoomOut = () => {
+    if (!svgRef.current || !zoomRef.current) return;
+    d3.select(svgRef.current).transition().duration(300).call(zoomRef.current.scaleBy, 0.77);
+  };
+
+  const handleZoomSlider = (e) => {
+    const newScale = parseFloat(e.target.value);
+    if (!svgRef.current || !zoomRef.current) return;
+    d3.select(svgRef.current).call(zoomRef.current.scaleTo, newScale);
+    setCurrentZoom(newScale);
+  };
+
+  const handleResetZoom = () => {
+    if (!svgRef.current || !zoomRef.current) return;
+    const isMobile = dimensions.width < 768;
+    const initialScale = isMobile ? 0.45 : 0.8;
+    const initialZoom = d3.zoomIdentity
+      .translate(dimensions.width / 2, isMobile ? 60 : 80)
+      .scale(initialScale);
+    d3.select(svgRef.current)
+      .transition()
+      .duration(750)
+      .ease(d3.easeCubicOut)
+      .call(zoomRef.current.transform, initialZoom);
+  };
 
   useEffect(() => {
     if (!activeNodeId || !gRef.current || !zoomRef.current || !svgRef.current) return;
@@ -68,9 +101,14 @@ const FamilyTree = ({ data, onNodeClick, activeNodeId }) => {
 
     const zoom = d3
       .zoom()
-      .scaleExtent([0.1, 5])
+      .scaleExtent([0.15, 3.5])
+      .filter((event) => {
+        // Allow wheel, touch gestures (pinch-to-zoom, pan), and left click drag
+        return !event.ctrlKey || event.type === 'wheel' || event.type.startsWith('touch');
+      })
       .on('zoom', (event) => {
         g.attr('transform', event.transform);
+        setCurrentZoom(event.transform.k);
       });
 
     zoomRef.current = zoom;
@@ -83,8 +121,13 @@ const FamilyTree = ({ data, onNodeClick, activeNodeId }) => {
     const root = d3.hierarchy(data);
     tree(root);
 
-    const initialZoom = d3.zoomIdentity.translate(dimensions.width / 2, 80).scale(0.8);
+    const isMobile = dimensions.width < 768;
+    const initialScale = isMobile ? 0.45 : 0.8;
+    const initialZoom = d3.zoomIdentity
+      .translate(dimensions.width / 2, isMobile ? 60 : 80)
+      .scale(initialScale);
     svg.call(zoom.transform, initialZoom);
+    setCurrentZoom(initialScale);
 
     const linkGenerator = (d) => {
       const { source, target } = d;
@@ -252,15 +295,71 @@ const FamilyTree = ({ data, onNodeClick, activeNodeId }) => {
   return (
     <div
       ref={containerRef}
-      className="w-full h-[700px] relative overflow-hidden bg-black/50 border-t border-b border-gold/10"
+      className="w-full h-[650px] sm:h-[750px] relative overflow-hidden bg-black/50 border-t border-b border-gold/10 touch-none select-none"
+      style={{ touchAction: 'none' }}
     >
       <div className="absolute top-6 left-6 z-10 pointer-events-none">
         <h3 className="text-gold font-serif text-xl tracking-widest">Lineage Landscape</h3>
         <p className="text-[10px] text-parchment/30 uppercase tracking-[0.2em] italic">
-          Drag to explore / Scroll to zoom
+          Drag to explore • Pinch or use slider to zoom
         </p>
       </div>
-      <svg ref={svgRef} width="100%" height="100%" className="cursor-move" />
+
+      {/* Floating Navigation & Zoom Dock */}
+      <div className="absolute bottom-6 right-4 sm:right-6 z-20 flex items-center gap-1.5 sm:gap-2 bg-black/85 backdrop-blur-md border border-gold/30 px-3 py-1.5 sm:py-2 rounded-full shadow-[0_0_25px_rgba(0,0,0,0.85)]">
+        <button
+          onClick={handleZoomOut}
+          className="p-1.5 text-gold/80 hover:text-gold hover:bg-gold/10 rounded-full transition-colors active:scale-90 cursor-pointer"
+          aria-label="Zoom Out"
+          title="Zoom Out"
+        >
+          <ZoomOut size={16} />
+        </button>
+
+        <div className="flex items-center gap-1.5 px-1">
+          <input
+            type="range"
+            min="0.15"
+            max="2.5"
+            step="0.05"
+            value={Math.min(2.5, Math.max(0.15, currentZoom))}
+            onChange={handleZoomSlider}
+            className="w-16 sm:w-28 accent-[#FFD700] cursor-pointer h-1.5 bg-gold/20 rounded-lg"
+            aria-label="Zoom level"
+          />
+          <span className="text-[10px] text-gold/80 font-mono w-9 text-center hidden sm:inline-block select-none">
+            {Math.round(currentZoom * 100)}%
+          </span>
+        </div>
+
+        <button
+          onClick={handleZoomIn}
+          className="p-1.5 text-gold/80 hover:text-gold hover:bg-gold/10 rounded-full transition-colors active:scale-90 cursor-pointer"
+          aria-label="Zoom In"
+          title="Zoom In"
+        >
+          <ZoomIn size={16} />
+        </button>
+
+        <div className="h-4 w-px bg-gold/20 mx-0.5" />
+
+        <button
+          onClick={handleResetZoom}
+          className="flex items-center gap-1 px-2.5 py-1 text-gold/90 hover:text-gold hover:bg-gold/10 rounded-full text-[10px] uppercase tracking-wider transition-colors active:scale-90 font-medium cursor-pointer"
+          title="Reset View / Fit to Screen"
+        >
+          <Maximize2 size={12} />
+          <span>Fit</span>
+        </button>
+      </div>
+
+      <svg
+        ref={svgRef}
+        width="100%"
+        height="100%"
+        className="cursor-move touch-none"
+        style={{ touchAction: 'none' }}
+      />
     </div>
   );
 };
