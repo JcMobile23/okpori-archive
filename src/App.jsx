@@ -11,6 +11,14 @@ import { DEFAULT_GALLERY } from './data/defaultGallery';
 import { updateRecursive, findPerson, validateLineageShape } from './utils/tree';
 import ThreeSafe from './components/ThreeSafe';
 import { BoundaryFallback } from './components/ErrorBoundary';
+import {
+  supabase,
+  fetchCloudLineage,
+  saveCloudLineage,
+  fetchCloudGallery,
+  saveCloudGalleryItem,
+  removeCloudGalleryItem,
+} from './utils/supabase';
 
 const LazyHero = lazy(() => import('./components/Hero'));
 const LazyFamilyTree3D = lazy(() => import('./components/FamilyTree3D'));
@@ -140,6 +148,88 @@ const App = () => {
     }
   }, [showTree]);
 
+  // Live Supabase Cloud Sync & Realtime Listener
+  React.useEffect(() => {
+    let channel;
+    const initCloud = async () => {
+      try {
+        // 1. Fetch cloud lineage
+        const cloudLineage = await fetchCloudLineage();
+        if (cloudLineage && validateLineageShape(cloudLineage)) {
+          setData(cloudLineage);
+          safeWriteStorage(STORAGE_KEYS.LINEAGE, cloudLineage);
+        } else {
+          // Auto-seed cloud with local lineage if cloud has no record yet
+          saveCloudLineage(data);
+        }
+
+        // 2. Fetch cloud gallery
+        const cloudGallery = await fetchCloudGallery();
+        if (cloudGallery && Array.isArray(cloudGallery) && cloudGallery.length > 0) {
+          setGalleryItems(cloudGallery);
+          safeWriteStorage(STORAGE_KEYS.GALLERY, cloudGallery);
+        } else if (cloudGallery && Array.isArray(cloudGallery) && cloudGallery.length === 0) {
+          // Auto-seed cloud with default gallery
+          for (const item of galleryItems) {
+            await saveCloudGalleryItem(item);
+          }
+        }
+
+        // 3. Subscribe to Realtime Postgres Changes
+        channel = supabase
+          .channel('okpori-live-sync')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'lineage' },
+            (payload) => {
+              if (payload.new && payload.new.data) {
+                setData(payload.new.data);
+                safeWriteStorage(STORAGE_KEYS.LINEAGE, payload.new.data);
+              }
+            }
+          )
+          .on(
+            'postgres_changes',
+            { event: 'INSERT', schema: 'public', table: 'gallery' },
+            (payload) => {
+              if (payload.new) {
+                setGalleryItems((prev) => {
+                  if (prev.some((item) => item.id === payload.new.id)) return prev;
+                  const updated = [payload.new, ...prev];
+                  safeWriteStorage(STORAGE_KEYS.GALLERY, updated);
+                  return updated;
+                });
+              }
+            }
+          )
+          .on(
+            'postgres_changes',
+            { event: 'DELETE', schema: 'public', table: 'gallery' },
+            (payload) => {
+              if (payload.old) {
+                setGalleryItems((prev) => {
+                  const updated = prev.filter((item) => item.id !== payload.old.id);
+                  safeWriteStorage(STORAGE_KEYS.GALLERY, updated);
+                  return updated;
+                });
+              }
+            }
+          )
+          .subscribe();
+      } catch (err) {
+        console.warn('[Okpori] Cloud sync init notice:', err);
+      }
+    };
+
+    initCloud();
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
+  }, []);
+
   const handleAdminToggle = () => {
     if (adminTimerRef.current) {
       clearTimeout(adminTimerRef.current);
@@ -162,18 +252,21 @@ const App = () => {
     setData(newData);
     setSelectedPerson(updatedPerson);
     safeWriteStorage(STORAGE_KEYS.LINEAGE, newData);
+    saveCloudLineage(newData);
   };
 
   const saveGalleryItem = (item) => {
     const newGallery = [item, ...galleryItems];
     if (!safeWriteStorage(STORAGE_KEYS.GALLERY, newGallery)) return;
     setGalleryItems(newGallery);
+    saveCloudGalleryItem(item);
   };
 
   const removeGalleryItem = (id) => {
     const newGallery = galleryItems.filter((item) => item.id !== id);
     if (!safeWriteStorage(STORAGE_KEYS.GALLERY, newGallery)) return;
     setGalleryItems(newGallery);
+    removeCloudGalleryItem(id);
   };
 
   const resetArchive = () => {
@@ -182,6 +275,7 @@ const App = () => {
     );
     if (confirmed) {
       localStorage.removeItem(STORAGE_KEYS.LINEAGE);
+      saveCloudLineage(lineageData);
       window.location.reload();
     }
   };
@@ -190,7 +284,7 @@ const App = () => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         try {
           const archive = JSON.parse(event.target.result);
           if (
@@ -200,6 +294,10 @@ const App = () => {
           ) {
             safeWriteStorage(STORAGE_KEYS.LINEAGE, archive.lineage);
             safeWriteStorage(STORAGE_KEYS.GALLERY, archive.gallery);
+            await saveCloudLineage(archive.lineage);
+            for (const item of archive.gallery) {
+              await saveCloudGalleryItem(item);
+            }
             window.location.reload();
           } else {
             alert("This file doesn't seem to be a valid Okpori Archive.");
