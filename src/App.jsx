@@ -109,20 +109,44 @@ const App = () => {
   const [isPortalOpen, setIsPortalOpen] = useState(false);
   const [activeNodeId, setActiveNodeId] = useState(null);
   const [data, setData] = useState(() => {
-    const saved = safeReadStorage(STORAGE_KEYS.LINEAGE, null);
-    if (!saved) return lineageData;
-    const ayodeleSaved = findPerson(saved, HONOREE_CONFIG.id);
+    let current = safeReadStorage(STORAGE_KEYS.LINEAGE, null) || lineageData;
+    let modified = false;
+
+    // Check Ayodele honoree photo
+    const ayodeleSaved = findPerson(current, HONOREE_CONFIG.id);
     const ayodeleBase = findPerson(lineageData, HONOREE_CONFIG.id);
     if (ayodeleBase?.imageUrl && !ayodeleSaved?.imageUrl) {
-      const merged = updateRecursive(saved, { id: HONOREE_CONFIG.id, imageUrl: ayodeleBase.imageUrl });
-      safeWriteStorage(STORAGE_KEYS.LINEAGE, merged);
-      return merged;
+      current = updateRecursive(current, { id: HONOREE_CONFIG.id, imageUrl: ayodeleBase.imageUrl });
+      modified = true;
     }
-    return saved;
+
+    // Check Chiamaka POP photo and profile
+    const chiamakaSaved = findPerson(current, 'chiamaka-nc');
+    const chiamakaBase = findPerson(lineageData, 'chiamaka-nc');
+    if (chiamakaBase?.imageUrl && !chiamakaSaved?.imageUrl) {
+      current = updateRecursive(current, {
+        id: 'chiamaka-nc',
+        imageUrl: chiamakaBase.imageUrl,
+        title: chiamakaBase.title,
+        bio: chiamakaBase.bio,
+      });
+      modified = true;
+    }
+
+    if (modified) {
+      safeWriteStorage(STORAGE_KEYS.LINEAGE, current);
+    }
+    return current;
   });
   const [galleryItems, setGalleryItems] = useState(() => {
     const saved = safeReadStorage(STORAGE_KEYS.GALLERY, null);
     if (saved && Array.isArray(saved) && saved.length > 0) {
+      const missing = DEFAULT_GALLERY.filter((def) => !saved.some((s) => s.id === def.id));
+      if (missing.length > 0) {
+        const merged = [...missing, ...saved];
+        safeWriteStorage(STORAGE_KEYS.GALLERY, merged);
+        return merged;
+      }
       return saved;
     }
     return DEFAULT_GALLERY;
