@@ -41,12 +41,11 @@ const safeWriteStorage = (key, value) => {
     return true;
   } catch (err) {
     if (err && err.name === 'QuotaExceededError') {
-      alert(
-        'Storage full (5MB browser limit). Photos are stored on this device — please remove older large photos or back them up externally.'
+      console.warn(
+        `[Okpori] Browser local storage quota reached for "${key}". Changes are safely preserved in the cloud database.`
       );
     } else {
-      alert('Failed to save changes to this browser.');
-      console.error(err);
+      console.warn(`[Okpori] Failed to write to local storage for "${key}".`, err);
     }
     return false;
   }
@@ -139,16 +138,10 @@ const App = () => {
     return current;
   });
   const [galleryItems, setGalleryItems] = useState(() => {
-    const saved = safeReadStorage(STORAGE_KEYS.GALLERY, null);
-    if (saved && Array.isArray(saved) && saved.length > 0) {
-      const missing = DEFAULT_GALLERY.filter((def) => !saved.some((s) => s.id === def.id));
-      if (missing.length > 0) {
-        const merged = [...missing, ...saved];
-        safeWriteStorage(STORAGE_KEYS.GALLERY, merged);
-        return merged;
-      }
-      return saved;
-    }
+    // Free browser local storage by clearing legacy base64 gallery cache
+    try {
+      localStorage.removeItem(STORAGE_KEYS.GALLERY);
+    } catch (_) {}
     return DEFAULT_GALLERY;
   });
   const [isAdminMode, setIsAdminMode] = useState(false);
@@ -191,7 +184,6 @@ const App = () => {
         const cloudGallery = await fetchCloudGallery();
         if (cloudGallery && Array.isArray(cloudGallery) && cloudGallery.length > 0) {
           setGalleryItems(cloudGallery);
-          safeWriteStorage(STORAGE_KEYS.GALLERY, cloudGallery);
         } else if (cloudGallery && Array.isArray(cloudGallery) && cloudGallery.length === 0) {
           // Auto-seed cloud with default gallery
           for (const item of galleryItems) {
@@ -219,9 +211,7 @@ const App = () => {
               if (payload.new) {
                 setGalleryItems((prev) => {
                   if (prev.some((item) => item.id === payload.new.id)) return prev;
-                  const updated = [payload.new, ...prev];
-                  safeWriteStorage(STORAGE_KEYS.GALLERY, updated);
-                  return updated;
+                  return [payload.new, ...prev];
                 });
               }
             }
@@ -231,11 +221,7 @@ const App = () => {
             { event: 'DELETE', schema: 'public', table: 'gallery' },
             (payload) => {
               if (payload.old) {
-                setGalleryItems((prev) => {
-                  const updated = prev.filter((item) => item.id !== payload.old.id);
-                  safeWriteStorage(STORAGE_KEYS.GALLERY, updated);
-                  return updated;
-                });
+                setGalleryItems((prev) => prev.filter((item) => item.id !== payload.old.id));
               }
             }
           )
@@ -281,14 +267,12 @@ const App = () => {
 
   const saveGalleryItem = (item) => {
     const newGallery = [item, ...galleryItems];
-    if (!safeWriteStorage(STORAGE_KEYS.GALLERY, newGallery)) return;
     setGalleryItems(newGallery);
     saveCloudGalleryItem(item);
   };
 
   const removeGalleryItem = (id) => {
     const newGallery = galleryItems.filter((item) => item.id !== id);
-    if (!safeWriteStorage(STORAGE_KEYS.GALLERY, newGallery)) return;
     setGalleryItems(newGallery);
     removeCloudGalleryItem(id);
   };
